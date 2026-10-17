@@ -1,3 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
 <title>Life Sciences Desk</title>
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAE3klEQVR42u2X229VVRDGf7PW7jk9p6f0wkW0LVEQIhcBg3iFRMUCFgLRWjDERxMTH9Q/wDcTH0yMbyReH9REqVajBKqgxQugkRDrJYhRsPaArVBoaXtKu89ea3zoLrRN6YXUJ5lkv+zZM+tb38ya9W34v5tc4b0Zx6eAHyenHcfn4/gJASACxox0qwevOuGurJGRmRWc10kxIDHCl4DFQBSzAeCABLAb2Bnv1I2KKwReB8pjnwzbeQA8D3wb5/RjAhBBVfnlhutSS5cvKcPlB9m2CcNvv3fTku09tXgJC44dIz+sJENgqoF9966aRSaTwDuPsUIuF3Ho6FlU2Q7UDwcfjEVf5PTCpvuvd6++vc7R0T9Y09IETQ1/+nWPN1WcPBncDdFXwxMZI3ivdTdVZtzB3RsjEjYg7yEdcOZ4p7vhno+tcxqKwPAqmiuVMQzVciG0YXdoXW/eurY+e+8ds6Vyblr6+6M6IzLEoABux445RcDmLdUVlqRNhB39NuoJre8O7YXevI3ByljdfsUmxAjGCNYKGinJWYVmy4MVAFueebYiFfeIBaS+vuM+4PptNVWeyIu1g7FDD+Mct8mdVwEiNds2zfNA1c6dbWsvVc2IhqHbtuimYr1r9RyvuWjcRa8KgLGC5vKsuXOOXzAvowMDbnu8SLh+fdkM4KGH11eKmVFgXaTIJDNP6jPVuNB5xZYm7NbqSgFqHnigtATQ/fvPPygwu66myhF6MQa812kAoEqQMGTbcrxRf4IgE0C/k+2bqhww98CBznXWCM7x2JJFJbpq5SwFaP61i4bGLKa4ACYAMikGrDW8/VELYS6CAc8dq2br4ptnqHNsidyjCWB97cYqIRVYEoaGxiwnszlI2FGD92oAeCVTFNB8rJMjP3RA0kBRYB/ZUCXAmnS64QljpKR2Q6Un8sJFx/t7W0kX2pEH/qoB6OBw6slF1O9thaSFfie1G6uwRm68eNG/sHJJqS5bWi4Ax4918ntLD0XpYPwrayol8F5Jpywf7TtFvnMA8p4Vy8u5bWmZFaGkrmaemHQgBIaGT7OIQGBlmhgAvIeiVED27z49fOQsJC2mKGBrdSWqaO2GKog8rjfPB41ZVCfsvanOAcWIIILs2tMKBQYGPNVr5rJ6ebksXFgCIhz98Rw/He+6xNq0DiLnFVX6d39+mr6z/eA8y28p5c0X78RHHhKGDxqzeK8hXLoppw2A6mA9955q7+s7cPgfNBWQTBiWLStHgOhC6D78LAvwBXBm2FU9HXNAhoTHN0Dze3v+Qox47yHfFyGZAg59d8ac+KuX4nTBe+MprUkDUFV8pERu8IntPPBh45dtdP+d8wRCFCkY/K49rQL8cfuKmV8Bxd4rURzvnE4ZgC9MWm/mFPpgZtKXzSz0InggOX9+2fvnOge06WC7BPMyPjU35Rnw0SdfnPbAx02vrW0DghmZAh/E8bPKk34sQTqmIoq7N/3192fN0098bTTvGQhdoicXAZS1tHS1inD8uZd/Xtx0tAOc0v5PX+J0ex/Arltqm5JA6pV3/+Bg8znUebq6QhPnDUaPhiuJ0neAW2O5NSS7glisvgU8BTwZCxIBrMAphc1AGbAHSMW5ZFj8s0DTeKJ0hDq19jJp0ag6Diqdy9e1m6L/v/ihEa7ZNbsK+xc7QiIASlx8DQAAAABJRU5ErkJggg==">
 <link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACM0lEQVR42q1Tz0tUURT+zrnvvQlnxjc/nEFMpySwkJJ+KBk4TYXIhDCDoBDtRILoj2jdolVEELSIIKGFBQptykWlRIvcmNKiyXlDiSkU6pTazNzTYn70ZmzZ2dxz+O757j3f/S7BFUwEUDnXWgiAVCAighBRFcN/DVVZxzrbvct9p8ILnR3eJQAj5aOBJqA1FLDenzkZXuzuspcV4ba711CKAODG1L0Bkc1xWXmdEttnPgcAESEAEw9unRXZGhfnTUqavcZTAEgkYLDrJgVWpCGyd7jL1olz0TiAg8wk4YB1JTXYpiGyowzSRNir6eYiIBEwfmsFk/VYMuYDcEkE/kR/9Hwk5mdsFUwIMWpS1xPAYzG213cwN/uF0pc7JBr2DAMYmRg9YuU+bRaXPvyAt0mhpF0v5yYgIogW3J/MsP+QjwZ6I0NK0c2hZDsePsnwt++7MA2Glr/PaLgJSiVBs9fEy/k1yufySA+2B/O/ikHDtvDoWZaTiTbtbt5HICKAxbS2sStTMw6lh2NyvDuIj2/XKZPLi7fJgNb1HnCPIAA0SpqYaWFyxlkNtByQ0/FWeTyd/UmEeRAYgHY5tI7AME1mGIpDtrXy6t3Gi9XP24x8gadnvy6KYM5QxB6LGSJW3RgVi189cdR2LvRHHcuiOwAu9hyzs/HeFgfAdQDX+npCTrwv4ijC3aoTqcHSVU00gAIAT6Xea8BLAIr7PgUzQXGNkxrqRry8qYGDGkQlV/4vHH8AISG+WhdVcioAAAAASUVORK5CYII=">
@@ -202,9 +213,9 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 .kws{display:flex;flex-wrap:wrap;gap:6px}
 .kw{display:inline-flex;align-items:center;gap:5px;font-family:var(--f-mono);font-size:12px;border-radius:4px;padding:3px 8px;border:1px solid transparent;max-width:100%;overflow-wrap:anywhere}
 .kw.hit{background:var(--accent-soft);color:var(--ink)}
-.kw.hit::before{content:"✓";color:var(--accent);font-weight:700}
+.kw.hit::before{content:"\2713 ";color:var(--accent);font-weight:700}
 .kw.miss{border-color:var(--line-strong);border-style:dashed;color:var(--muted)}
-.kw.miss::before{content:"✕";font-size:10px}
+.kw.miss::before{content:"\2715 ";font-size:10px}
 .bullets{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .bullets li{display:flex;gap:10px;align-items:center}
 .bullets li::before{content:"";width:7px;height:7px;background:var(--accent);flex:none;transform:rotate(45deg)}
@@ -218,7 +229,8 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
-
+</head>
+<body>
 <header class="top">
   <div class="wrap">
     <div class="brand"><b>Life Sciences Desk</b><span>Sourcing &amp; BD tracker</span></div>
@@ -231,7 +243,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 </header>
 
 <main>
-  <!-- ============ PAGE 1: RIG → BOOLEAN ============ -->
+  <!-- ============ PAGE 1: RIG &#x2192; BOOLEAN ============ -->
   <section id="view-boolean" role="tabpanel" aria-labelledby="tab-boolean">
     <div class="wrap">
       <div class="head">
@@ -267,15 +279,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             <div class="step-h"><span class="k">STEP 2</span><h2>Paste the job description</h2><small id="jd-count"></small></div>
             <div class="field">
               <label class="sr" for="rig-jd">Job description</label>
-              <textarea id="rig-jd" placeholder="Paste the full job description here…"></textarea>
+              <textarea id="rig-jd" placeholder="Paste the full job description here&#x2026;"></textarea>
             </div>
           </div>
 
           <div class="step">
             <div class="step-h"><span class="k">STEP 3</span><h2>Get the string from ChatGPT</h2><small>Free, no sign-in</small></div>
-            <p class="lede">This copies your RIG, the job description and your format rules as one prompt and opens ChatGPT in a new tab. Paste it there with ⌘V / Ctrl+V and send.</p>
+            <p class="lede">This copies your RIG, the job description and your format rules as one prompt and opens ChatGPT in a new tab. Paste it there with &#x2318;V / Ctrl+V and send.</p>
             <div class="row">
-              <a class="btn primary big" id="g-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT ↗</a>
+              <a class="btn primary big" id="g-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT &#x2197;</a>
               <button type="button" class="btn ghost" id="g-copy">Copy prompt only</button>
             </div>
             <details class="rules">
@@ -292,7 +304,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             <div class="step-h"><span class="k">STEP 4</span><h2>Paste ChatGPT's answer</h2></div>
             <div class="field">
               <label class="sr" for="g-answer">ChatGPT's answer</label>
-              <textarea id="g-answer" class="short" placeholder="Paste the Boolean string ChatGPT gave you…"></textarea>
+              <textarea id="g-answer" class="short" placeholder="Paste the Boolean string ChatGPT gave you&#x2026;"></textarea>
               <span class="hint">It's cleaned up as soon as you paste: one line, quotes on every phrase, AND / OR / NOT in caps, parentheses balanced.</span>
             </div>
             <div class="row"><button type="button" class="btn" id="g-use">Clean up &amp; use</button></div>
@@ -321,7 +333,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
           <div class="meta"><span id="b-chars"></span><span id="b-terms"></span></div>
 
           <div class="groups" id="b-groups"></div>
-          <p class="note" id="b-groups-note">Remove a term with ×, add one in the dashed box, or switch a whole block off. The string rebuilds as you edit.</p>
+          <p class="note" id="b-groups-note">Remove a term with &#xD7;, add one in the dashed box, or switch a whole block off. The string rebuilds as you edit.</p>
         </div>
       </div>
     </div>
@@ -348,7 +360,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             </div>
             <div class="field">
               <label class="sr" for="x-resume">Resume</label>
-              <textarea id="x-resume" placeholder="Paste the candidate's resume here…"></textarea>
+              <textarea id="x-resume" placeholder="Paste the candidate's resume here&#x2026;"></textarea>
             </div>
           </div>
 
@@ -369,7 +381,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             <p class="lede">The bullets on the right are drafted from the candidate's own resume lines. For smoother wording, send everything to ChatGPT and paste its 5 bullets back here.</p>
             <label class="check"><input type="checkbox" id="x-strip" checked> Leave the candidate's name, email, phone and links out of the prompt</label>
             <div class="row">
-              <a class="btn primary" id="x-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT ↗</a>
+              <a class="btn primary" id="x-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT &#x2197;</a>
               <button type="button" class="btn ghost" id="x-copy-prompt">Copy prompt only</button>
             </div>
             <details class="rules">
@@ -382,7 +394,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             </details>
             <div class="field">
               <label for="x-answer">Paste ChatGPT's bullets</label>
-              <textarea id="x-answer" class="short" placeholder="Paste the 5 bullets here…"></textarea>
+              <textarea id="x-answer" class="short" placeholder="Paste the 5 bullets here&#x2026;"></textarea>
             </div>
             <div class="status" id="x-status" aria-live="polite"></div>
             <div class="row alt-row">
@@ -400,7 +412,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
         <div class="sticky">
           <div class="panel">
             <div class="score-card">
-              <div class="score-num" aria-live="polite"><span id="x-score">–</span><small>%</small></div>
+              <div class="score-num" aria-live="polite"><span id="x-score">&#x2013;</span><small>%</small></div>
               <div class="score-side"><span class="pill" id="x-band" hidden></span><p id="x-score-sub"></p></div>
             </div>
             <div class="meter" aria-hidden="true"><span id="x-meter"></span></div>
@@ -418,7 +430,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             <div class="row" style="margin-top:14px">
               <button type="button" class="btn ghost" id="x-redraft">Redo draft from keywords</button>
               <span class="grow"></span>
-              <button type="button" class="btn" id="x-to-middleton">Add to Middleton Method →</button>
+              <button type="button" class="btn" id="x-to-middleton">Add to Middleton Method &#x2192;</button>
             </div>
           </div>
 
@@ -457,7 +469,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
               </div>
               <div class="field" id="m-link-field">
                 <label for="m-link"><span class="q">3.</span>Link to job description</label>
-                <input type="url" id="m-link" autocomplete="off" placeholder="https://…">
+                <input type="url" id="m-link" autocomplete="off" placeholder="https://&#x2026;">
                 <span class="hint">Becomes a clickable link on the position cell.</span>
               </div>
             </div>
@@ -585,7 +597,9 @@ const EXAMPLE_B = {
 
 // Show the example until there's a real search saved (an untouched example or empty draft gets the current example)
 const storedB = store.get("md.boolean", null);
-let B = storedB && !storedB.example && (storedB.role || storedB.jd || storedB.raw) ? storedB : structuredClone(EXAMPLE_B);
+const blankB = () => ({ example:false, role:"", industry:"", geo:"", jd:"", groups:{titles:[],skills:[],industry:[],locations:[],exclude:[]},
+        on:{titles:true,skills:true,industry:true,locations:true,exclude:false}, source:"" });
+let B = storedB && !storedB.example ? storedB : blankB();
 let sampleFn = null;        // Claude, when this view can use it
 let sampleCtl = null;
 
@@ -709,8 +723,7 @@ function updateJdCount(){
 }));
 
 $("#b-clear").addEventListener("click", () => {
-  B = { example:false, role:"", industry:"", geo:"", jd:"", groups:{titles:[],skills:[],industry:[],locations:[],exclude:[]},
-        on:{titles:true,skills:true,industry:true,locations:true,exclude:false}, source:"" };
+  B = blankB();
   saveB(); syncInputsFromB(); renderGroups(); renderBooleanOut(); setStatus("");
   $("#g-answer").value = ""; $("#g-status").textContent = ""; roleEl.focus();
 });
@@ -1085,7 +1098,8 @@ const EXAMPLE_E = {
   candidates: ["Doe Johnson"]
 };
 let LOG = store.get("md.log", []);
-let E = store.get("md.entry", null) || structuredClone(EXAMPLE_E);
+const storedE = store.get("md.entry", null);
+let E = storedE && !storedE.example ? storedE : { example:false, id:null, num: nextNum(), company:"", position:"", link:"", managers:[blankMgr()], candidates:[""] };
 if (!E.managers?.length) E.managers = [blankMgr()];
 if (!E.candidates?.length) E.candidates = [""];
 
@@ -1628,7 +1642,7 @@ Lean Six Sigma Green Belt`;
 
 const blankMatch = () => ({ example:false, name:"", nameAuto:true, resume:"", bullets:["","","","",""], bsource:"draft", strip:true });
 let M = store.get("md.match", null);
-if (!M){ M = { ...blankMatch(), example:true, name:"Jordan Ellis", resume:EXAMPLE_RESUME }; }
+if (!M || M.example){ M = blankMatch(); }
 function saveM(){ store.set("md.match", M); }
 
 const xName = $("#x-name"), xResume = $("#x-resume"), xJd = $("#x-jd");
@@ -1930,3 +1944,5 @@ if (window.claude && typeof window.claude.use === "function"){
 }
 })();
 </script>
+</body>
+</html>
