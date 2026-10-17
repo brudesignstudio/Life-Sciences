@@ -173,9 +173,23 @@ a.btn.primary{color:var(--accent-ink)}
 .mgr-h{display:flex;align-items:center;margin-bottom:10px}
 .mgr-h strong{font-size:13px;margin-right:auto}
 .mgrs{display:grid;gap:12px}
-.cands{display:grid;gap:8px}
-.cand{display:flex;gap:8px;align-items:center}
-.cand input{flex:1}
+.num-row{display:flex;gap:20px;align-items:start}
+.terms-box{display:flex;align-items:center;height:40px}
+.terms-box input{accent-color:var(--accent);width:20px;height:20px;margin:0;cursor:pointer}
+.pick{background:var(--surface);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;padding:18px 20px 20px;width:min(480px,calc(100% - 32px));max-height:calc(100% - 64px)}
+.pick::backdrop{background:rgba(10,10,12,.66)}
+.pick-h{display:flex;align-items:center;gap:10px}
+.pick-h h2{margin:0;font-size:16px;font-weight:700;margin-right:auto}
+.pick-sub{margin:4px 0 14px;font-size:13px;color:var(--muted)}
+.pick-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.pick-list button.pick-row{width:100%;display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;text-align:left;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;color:inherit;font:inherit}
+.pick-list button.pick-row:hover,.pick-list button.pick-row:focus-visible{border-color:var(--accent);outline:none}
+.pick-list .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.pick-list .t{min-width:0}
+.pick-list .t b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-list .t span{display:block;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick-list .go{font-size:13px;font-weight:600;color:var(--accent)}
+.pick-list .on{font-size:13px;color:var(--good)}
 
 /* Spreadsheet preview */
 .sheet-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--sheet-bg)}
@@ -205,6 +219,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 .log-list .t{min-width:0}
 .log-list .t b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .log-list .t span{font-size:12.5px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-list .t .badge{display:inline-flex;vertical-align:2px;margin-left:6px;font-size:11px;padding:1px 7px;color:var(--warn)}
+.log-list .t .badge.ok{color:var(--accent)}
+.log-list .cl{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.cand-chip{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 6px 2px 10px;cursor:pointer}
+.cand-chip::after{content:"\00D7";font-size:14px;line-height:1;color:var(--muted)}
+.cand-chip:hover{border-color:var(--line-strong)}
+.cand-chip:hover::after{color:var(--ink)}
+.cand-chip.armed{border-color:var(--not);color:var(--not)}
+.cand-chip.armed::after{color:var(--not)}
 .log-empty{border:1px dashed var(--line-strong);border-radius:8px;padding:14px;font-size:13px;color:var(--muted)}
 
 /* Candidate match */
@@ -457,9 +480,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
           <div class="step">
             <div class="step-h"><span class="k">THE ROLE</span><h2>Company &amp; position</h2></div>
             <div class="qs">
-              <div class="field num-field">
-                <label for="m-num">Entry #</label>
-                <input type="number" id="m-num" min="1" inputmode="numeric">
+              <div class="full num-row">
+                <div class="field num-field">
+                  <label for="m-num">Entry #</label>
+                  <input type="number" id="m-num" min="1" inputmode="numeric">
+                </div>
+                <div class="field terms-field">
+                  <label for="m-terms">Terms?</label>
+                  <span class="terms-box"><input type="checkbox" id="m-terms"></span>
+                </div>
               </div>
               <div class="field full">
                 <label for="m-company">Company name</label>
@@ -481,12 +510,6 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
             <div class="step-h"><span class="k">CONTACTS</span><h2>Hiring managers</h2><small id="m-mgr-count"></small></div>
             <div class="mgrs" id="m-mgrs"></div>
             <div><button type="button" class="btn" id="m-add-mgr">+ Add manager</button></div>
-          </div>
-
-          <div class="step">
-            <div class="step-h"><span class="k">SUBMITTAL</span><h2>Candidate</h2></div>
-            <div class="cands" id="m-cands"></div>
-            <div><button type="button" class="btn ghost" id="m-add-cand">+ Add another candidate</button></div>
           </div>
 
           <div class="step">
@@ -512,6 +535,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
     </div>
   </section>
 </main>
+
+<dialog class="pick" id="x-pick" aria-labelledby="x-pick-h">
+  <div class="pick-h">
+    <h2 id="x-pick-h">Add to which entry?</h2>
+    <button type="button" class="btn ghost" id="x-pick-close" aria-label="Close">Close</button>
+  </div>
+  <p class="pick-sub" id="x-pick-sub"></p>
+  <div id="x-pick-list"></div>
+</dialog>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -851,9 +883,9 @@ const EXAMPLE_E = {
 };
 let LOG = store.get("md.log", []);
 const storedE = store.get("md.entry", null);
-let E = storedE && !storedE.example ? storedE : { example:false, id:null, num: nextNum(), company:"", position:"", link:"", managers:[blankMgr()], candidates:[""] };
+let E = storedE && !storedE.example ? storedE : { example:false, id:null, num: nextNum(), terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
 if (!E.managers?.length) E.managers = [blankMgr()];
-if (!E.candidates?.length) E.candidates = [""];
+if (!E.candidates) E.candidates = [];
 
 function saveE(){ store.set("md.entry", E); }
 function saveLog(){ store.set("md.log", LOG); }
@@ -900,13 +932,14 @@ function normUrl(v){
 const isEmail = v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function renderTopFields(){
-  $("#m-num").value = E.num; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
+  $("#m-num").value = E.num; $("#m-terms").checked = !!E.terms; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
   $("#m-example-badge").hidden = !E.example;
 }
 ["num","company","position","link"].forEach(k => {
   const el = $("#m-" + k);
   el.addEventListener("input", () => { E[k] = el.value; markEdited(); saveE(); updateCopyState(); });
 });
+$("#m-terms").addEventListener("change", e => { E.terms = e.target.checked; markEdited(); saveE(); });
 $("#m-link").addEventListener("blur", e => { E.link = normUrl(e.target.value); e.target.value = E.link; saveE(); updateCopyState(); });
 
 function renderMgrs(){
@@ -948,26 +981,6 @@ $("#m-add-mgr").addEventListener("click", () => {
   document.getElementById(`mg${E.managers.length - 1}-title`).focus();
 });
 
-function renderCands(){
-  $("#m-cands").innerHTML = E.candidates.map((c, i) => `
-    <div class="field">
-      ${i === 0 ? `<label for="cand0">Candidate found from Boolean</label>` : `<label class="sr" for="cand${i}">Candidate ${i + 1}</label>`}
-      <div class="cand"><input type="text" id="cand${i}" data-ci="${i}" value="${esc(c)}" placeholder="Candidate name" autocomplete="off">
-      ${i > 0 ? `<button type="button" class="btn ghost" data-rm-cand="${i}" aria-label="Remove candidate ${i + 1}">Remove</button>` : ""}</div>
-    </div>`).join("");
-}
-$("#m-cands").addEventListener("input", e => {
-  const inp = e.target.closest("[data-ci]"); if (!inp) return;
-  E.candidates[Number(inp.dataset.ci)] = inp.value; markEdited(); saveE(); updateCopyState();
-});
-$("#m-cands").addEventListener("click", e => {
-  const b = e.target.closest("[data-rm-cand]"); if (!b) return;
-  E.candidates.splice(Number(b.dataset.rmCand), 1); saveE(); renderCands(); updateCopyState();
-});
-$("#m-add-cand").addEventListener("click", () => {
-  E.candidates.push(""); saveE(); renderCands(); document.getElementById(`cand${E.candidates.length - 1}`).focus();
-});
-
 /* ---------- The sheet model: rows of cells across columns A\u2013F ---------- */
 // cell: { v, bold, border, center, span, href, text }
 function headerRows(){
@@ -992,7 +1005,7 @@ function entryRows(e){
   for (let i = 0; i < n; i++){
     const m = mgrs[i] || blankMgr();
     rows.push([
-      { v:"" }, { v:m.title, border:true, center:true }, { v:m.name, border:true, center:true },
+      { v: i === 0 && e.terms ? "TERMS" : "", center:true }, { v:m.title, border:true, center:true }, { v:m.name, border:true, center:true },
       { v:m.email, border:true, center:true }, { v:m.phone, border:true, center:true, text:true }, { v:cands[i + 1] || "" }
     ]);
   }
@@ -1035,12 +1048,28 @@ function renderLog(){
   const sorted = [...LOG].sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0));
   host.innerHTML = `<ul class="log-list">${sorted.map(x => {
     const c = (x.candidates || []).filter(s => String(s).trim());
-    const exTag = isExampleEntry(x) ? ` <span class="badge">Example, not copied</span>` : "";
-    return `<li><span class="n">#${esc(x.num)}</span><span class="t"><b>${esc(x.company || "Untitled company")}${exTag}</b><span>${esc(x.position || "No position")}${c.length ? " \u00B7 " + esc(c.join(", ")) : ""}</span></span>
+    const exTag = (x.terms ? ` <span class="badge ok">Terms</span>` : "") + (isExampleEntry(x) ? ` <span class="badge">Example, not copied</span>` : "");
+    return `<li><span class="n">#${esc(x.num)}</span><span class="t"><b>${esc(x.company || "Untitled company")}${exTag}</b><span>${esc(x.position || "No position")}</span>${c.length ? `<div class="cl">${c.map(n => `<button type="button" class="cand-chip" data-rm-cand="${esc(x.id)}" data-name="${esc(n)}" title="Remove ${esc(n)} from #${esc(x.num)}" aria-label="Remove ${esc(n)} from entry ${esc(x.num)}">${esc(n)}</button>`).join("")}</div>` : ""}</span>
       <span class="row"><button type="button" class="btn ghost" data-copy="${esc(x.id)}">Copy</button><button type="button" class="btn ghost" data-edit="${esc(x.id)}">Edit</button><button type="button" class="btn ghost" data-del="${esc(x.id)}">Delete</button></span></li>`;
   }).join("")}</ul>`;
 }
 $("#m-log").addEventListener("click", e => {
+  const rc = e.target.closest("[data-rm-cand]");
+  if (rc){
+    // Two clicks, like Delete: the first asks, the second takes the name off the entry
+    if (rc.dataset.armed !== "1"){
+      rc.dataset.armed = "1"; rc.classList.add("armed"); rc.textContent = "Remove?";
+      setTimeout(() => { if (rc.isConnected){ rc.dataset.armed = ""; rc.classList.remove("armed"); rc.textContent = rc.dataset.name; } }, 3000);
+      return;
+    }
+    const x = LOG.find(l => l.id === rc.dataset.rmCand); if (!x) return;
+    const name = rc.dataset.name;
+    x.candidates = (x.candidates || []).filter(v => String(v).trim() && norm(v) !== norm(name));
+    saveLog(); renderLog();
+    if (E.id === x.id){ E.candidates = [...x.candidates]; saveE(); }
+    toast(`${name} removed from #${x.num}`);
+    return;
+  }
   const cp = e.target.closest("[data-copy]"), ed = e.target.closest("[data-edit]"), del = e.target.closest("[data-del]");
   if (cp){
     const x = LOG.find(l => l.id === cp.dataset.copy); if (!x) return;
@@ -1053,7 +1082,7 @@ $("#m-log").addEventListener("click", e => {
     const x = LOG.find(l => l.id === ed.dataset.edit); if (!x) return;
     E = structuredClone(x); E.example = false;
     if (!E.managers?.length) E.managers = [blankMgr()];
-    if (!E.candidates?.length) E.candidates = [""];
+    if (!E.candidates) E.candidates = [];
     saveE(); renderEntryForm(); toast(`Editing #${E.num}`);
     $("#m-company").focus();
   }
@@ -1070,7 +1099,7 @@ $("#m-form").addEventListener("submit", e => {
   rec.link = normUrl(rec.link);
   if (!rec.id) rec.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const i = LOG.findIndex(l => l.id === rec.id);
-  if (i >= 0) LOG[i] = rec; else LOG.push(rec);
+  if (i >= 0){ rec.candidates = LOG[i].candidates || []; LOG[i] = rec; } else LOG.push(rec);
   saveLog(); renderLog();
   toast(`Saved #${rec.num}`);
   newEntry();
@@ -1084,7 +1113,7 @@ $("#m-copy-all").addEventListener("click", async () => {
   toast(ok ? `Copied ${sorted.length} ${sorted.length === 1 ? "entry" : "entries"}` : "Copy was blocked by this browser.");
 });
 function newEntry(){
-  E = { example:false, id:null, num: nextNum(), company:"", position:"", link:"", managers:[blankMgr()], candidates:[""] };
+  E = { example:false, id:null, num: nextNum(), terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
   prefillPositionFromRig(true);
   saveE(); renderEntryForm();
 }
@@ -1096,7 +1125,7 @@ function prefillPositionFromRig(force){
     if (!force){ $("#m-position").value = E.position; updateCopyState(); }
   }
 }
-function renderEntryForm(){ renderTopFields(); renderMgrs(); renderCands(); updateCopyState(); }
+function renderEntryForm(){ renderTopFields(); renderMgrs(); updateCopyState(); }
 
 /* =========================================================
    PAGE 2 \u2014 CANDIDATE MATCH
@@ -1588,17 +1617,37 @@ $("#x-answer").addEventListener("change", useBulletAnswer);
 
 
 /* ---------- Hand the candidate to the Middleton Method tab ---------- */
-$("#x-to-middleton").addEventListener("click", () => {
+const pick = $("#x-pick");
+function openPicker(){
   if (M.example){ toast("That's the example candidate. Paste a real resume first."); return; }
   const name = M.name.trim();
   if (!name){ toast("Add the candidate's name first"); xName.focus(); return; }
-  if (E.example) newEntry();
-  if (!E.candidates.some(c => norm(c) === norm(name))){
-    const empty = E.candidates.findIndex(c => !String(c).trim());
-    if (empty >= 0) E.candidates[empty] = name; else E.candidates.push(name);
-  }
-  saveE(); renderEntryForm(); showView("middleton");
-  toast(`${name} added to entry #${E.num}`);
+  const entries = copyableLog();
+  $("#x-pick-h").textContent = `Add ${name} to which entry?`;
+  $("#x-pick-sub").textContent = entries.length ? "Pick the saved entry this candidate is a fit for. The name goes in the candidate column of that block." : "";
+  $("#x-pick-list").innerHTML = entries.length ? `<ul class="pick-list">${entries.map(x => {
+    const c = (x.candidates || []).filter(v => String(v).trim());
+    const on = c.some(v => norm(v) === norm(name));
+    return `<li><button type="button" class="pick-row" data-pick="${esc(x.id)}"><span class="n">#${esc(x.num)}</span><span class="t"><b>${esc(x.company || "Untitled company")}</b><span>${esc(x.position || "No position")}${c.length ? " \u00B7 " + esc(c.join(", ")) : ""}</span></span>${on ? `<span class="on">Added \u2713</span>` : `<span class="go">Add</span>`}</button></li>`;
+  }).join("")}</ul>` : `<div class="log-empty">No saved entries yet. Save the role in the Middleton Method tab first, then come back to add ${esc(name)}.</div>
+    <div class="row" style="margin-top:14px"><button type="button" class="btn primary" id="x-pick-go">Go to Middleton Method</button></div>`;
+  pick.showModal();
+}
+$("#x-to-middleton").addEventListener("click", openPicker);
+$("#x-pick-close").addEventListener("click", () => pick.close());
+pick.addEventListener("click", e => { if (e.target === pick) pick.close(); });
+$("#x-pick-list").addEventListener("click", e => {
+  if (e.target.closest("#x-pick-go")){ pick.close(); showView("middleton"); return; }
+  const b = e.target.closest("[data-pick]"); if (!b) return;
+  const x = LOG.find(l => l.id === b.dataset.pick); if (!x) return;
+  const name = M.name.trim();
+  x.candidates = (x.candidates || []).filter(v => String(v).trim());
+  if (x.candidates.some(v => norm(v) === norm(name))){ pick.close(); toast(`${name} is already on #${x.num}`); return; }
+  x.candidates.push(name);
+  saveLog(); renderLog();
+  if (E.id === x.id){ E.candidates = [...x.candidates]; saveE(); }
+  pick.close();
+  toast(`${name} added to #${x.num} \u00B7 ${x.company || x.position || "entry"}`);
 });
 
 /* ---------- Clipboard helpers ---------- */
