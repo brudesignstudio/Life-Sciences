@@ -12,14 +12,44 @@ from pathlib import Path
 src_dir = Path(__file__).parent
 src = (src_dir / "app.html").read_text(encoding="utf-8")
 
+# The live address, e.g. "https://your-username.github.io/your-repo/" (with the trailing slash).
+# Link previews (iMessage, Slack, LinkedIn, etc.) need the full address to find the share image.
+SITE_URL = ""
+
 split = src.index('<header class="top">')
 head, body = src[:split].strip(), src[split:].strip()
+
+# On the website the icons are real files, so phones, home screens and link previews can fetch them
+# (app.html keeps them built in, which is what the claude.ai version needs).
+head = re.sub(r'<link rel="(icon|apple-touch-icon)"[^>]*>\s*', "", head)
+img = (SITE_URL or "") + "icons/og-image.png"
+web_head = f"""<meta name="description" content="Build Boolean searches, score candidates against the job description, and track BD contacts.">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#1C1B20">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Life Sciences">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Life Sciences Desk">
+<meta property="og:title" content="Life Sciences Desk">
+<meta property="og:description" content="Build Boolean searches, score candidates against the job description, and track BD contacts.">
+<meta property="og:image" content="{img}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+{f'<meta property="og:url" content="{SITE_URL}">' if SITE_URL else ''}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{img}">"""
 
 page = f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+{web_head}
 <style>
 :root{{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}
 body{{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}}
@@ -54,3 +84,5 @@ page = ascii_only(page)
 out = src_dir.parent / "index.html"
 out.write_text(page, encoding="utf-8")
 print(f"Wrote {out.name} ({len(page.encode('utf-8')):,} bytes)")
+if not SITE_URL:
+    print("Note: SITE_URL is empty, so link previews may not show the share image. Set it at the top of src/build.py once the site is live.")
