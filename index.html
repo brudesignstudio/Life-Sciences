@@ -1,0 +1,1262 @@
+<title>Life Sciences Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a two-pane workbench. Inputs on the left, live output on the right; stacks to one column under 960px.
+   Color: one committed look, the brand's signal yellow on near-black. The sheet preview stays white like a real spreadsheet. */
+:root{
+  --bg:#1C1B20; --surface:#25242A; --field:#1A191E; --ink:#F5F3EC; --muted:#A6A4AC; --line:#38363F; --line-strong:#56545E;
+  --accent:#FFDC00; --accent-hover:#FFE84D; --accent-ink:#1C1B20; --accent-soft:#3A3416;
+  --op:#FFDC00; --phrase:#F5F3EC; --paren:#7D7B85; --not:#FF8F6B;
+  --warn:#FFB86B; --warn-soft:#3B2C1A;
+  --sheet-bg:#FFFFFF; --sheet-ink:#111111; --sheet-grid:#E2E2E2; --sheet-head:#F3F3F3; --sheet-head-ink:#6B6B6B; --sheet-border:#111111; --sheet-link:#1155CC;
+  --f-display:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:6px;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;padding-block:14px}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font-family:var(--f-display);font-stretch:118%;font-weight:800;font-size:19px;letter-spacing:-.01em}
+.brand span{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.tab{border:0;background:transparent;padding:7px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.tab .n{font-family:var(--f-mono);font-size:11px;border:1px solid currentColor;border-radius:999px;width:20px;height:20px;display:inline-grid;place-items:center}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+
+/* Page heading */
+.head{padding-block:28px 18px;display:flex;flex-wrap:wrap;gap:8px 24px;align-items:end;justify-content:space-between}
+.head h1{font-family:var(--f-display);font-stretch:112%;font-weight:750;font-size:clamp(24px,3.2vw,32px);letter-spacing:-.015em;line-height:1.1;margin:0;text-wrap:balance}
+.head p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+
+.bench{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:start;padding-bottom:48px}
+.bench > *{min-width:0}
+@media (max-width:960px){.bench{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px)}
+@media (max-width:960px){.sticky{position:static}}
+
+.step{display:grid;gap:14px}
+.step + .step{margin-top:22px;padding-top:22px;border-top:1px solid var(--line)}
+.step-h{display:flex;align-items:baseline;gap:10px}
+.step-h .k{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600}
+.step-h h2{font-size:15px;font-weight:700;margin:0;letter-spacing:.01em}
+.step-h small{color:var(--muted);font-size:13px;margin-left:auto}
+
+.rig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.rig{grid-template-columns:minmax(0,1fr)}}
+.rig-letter{font-family:var(--f-display);font-stretch:125%;font-weight:800;color:var(--accent);margin-right:2px}
+
+.field{display:grid;gap:5px;min-width:0}
+.field label{font-size:13px;font-weight:600}
+.field label .q{font-family:var(--f-mono);color:var(--muted);font-weight:500;margin-right:4px}
+.field .hint{font-size:12px;color:var(--muted)}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],textarea{
+  width:100%;background:var(--field);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;min-width:0}
+input:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{resize:vertical;min-height:200px;line-height:1.45;font-size:14px}
+textarea.short{min-height:96px;font-family:var(--f-mono);font-size:13px}
+#g-rules{min-height:150px;font-size:13px}
+.lede{margin:0;font-size:13.5px;color:var(--muted);max-width:62ch}
+a.btn{text-decoration:none;color:inherit}
+a.btn.primary{color:var(--accent-ink)}
+.rules summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);padding:2px 0}
+.rules summary:hover{color:var(--ink)}
+.rules[open] summary{margin-bottom:8px}
+.step.alt .step-h h2{color:var(--muted)}
+.group-note{border:1px dashed var(--line-strong);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.field.bad input{border-color:var(--not)}
+.field .err{font-size:12px;color:var(--not)}
+
+.btn{border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--r);padding:9px 14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted);padding-inline:8px}
+.btn.ghost:hover{color:var(--ink)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btn.big{padding:11px 18px;font-size:15px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row .grow{margin-right:auto}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+.badge.ok{background:var(--accent-soft);color:var(--accent)}
+.status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:20px}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--line-strong);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:3s}}
+
+/* Boolean output */
+.out-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.out-h h2{margin:0;font-size:15px;font-weight:700;margin-right:auto}
+.string{font-family:var(--f-mono);font-size:14px;line-height:1.75;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin:0;white-space:pre-wrap;word-break:break-word;min-height:96px}
+.string .op{color:var(--op);font-weight:600}
+.string .not{color:var(--not);font-weight:600}
+.string .ph{color:var(--phrase)}
+.string .pa{color:var(--paren);font-weight:600}
+.string .empty{color:var(--muted);font-family:var(--f-body)}
+.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+
+.groups{display:grid;gap:14px;margin-top:22px}
+.group{border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.group.off{opacity:.55}
+.group-h{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.group-h strong{font-size:13px}
+.group-h .join{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.toggle{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer}
+.toggle input{accent-color:var(--accent);width:15px;height:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--f-mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 4px 3px 8px;max-width:100%}
+.chip span{overflow-wrap:anywhere}
+.chip button{border:0;background:transparent;cursor:pointer;color:var(--muted);width:18px;height:18px;border-radius:3px;line-height:1;font-size:14px;display:grid;place-items:center}
+.chip button:hover{background:var(--line);color:var(--ink)}
+.add-term{border:1px dashed var(--line-strong);background:transparent;border-radius:4px;padding:3px 8px;font-family:var(--f-mono);font-size:12.5px;width:150px;min-width:0}
+.add-term:focus{border-style:solid;border-color:var(--accent);outline:none}
+
+/* Middleton form */
+.qs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+.qs .full{grid-column:1/-1}
+@media (max-width:620px){.qs{grid-template-columns:minmax(0,1fr)}}
+.num-field{max-width:120px}
+.mgr{border:1px solid var(--line);border-radius:8px;padding:14px}
+.mgr-h{display:flex;align-items:center;margin-bottom:10px}
+.mgr-h strong{font-size:13px;margin-right:auto}
+.mgrs{display:grid;gap:12px}
+.cands{display:grid;gap:8px}
+.cand{display:flex;gap:8px;align-items:center}
+.cand input{flex:1}
+
+/* Spreadsheet preview */
+.sheet-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--sheet-bg)}
+table.sheet{border-collapse:collapse;font-family:Arial,"Helvetica Neue",Helvetica,sans-serif;font-size:13px;color:var(--sheet-ink);min-width:640px;width:100%;table-layout:fixed}
+table.sheet th{background:var(--sheet-head);color:var(--sheet-head-ink);font-weight:500;font-size:11px;border:1px solid var(--sheet-grid);height:22px;font-family:var(--f-body)}
+table.sheet th.rn{width:34px}
+table.sheet td{border:1px solid var(--sheet-grid);height:28px;padding:2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.sheet td.b{border:1px solid var(--sheet-border)}
+table.sheet td.c{text-align:center}
+table.sheet td.bold{font-weight:700}
+table.sheet td.rn{background:var(--sheet-head);color:var(--sheet-head-ink);font-size:11px;text-align:center;font-family:var(--f-body)}
+table.sheet a{color:var(--sheet-link)}
+table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
+
+.copy-opts{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:12px}
+.copy-opts label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.copy-opts input{accent-color:var(--accent)}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+.log{margin-top:22px}
+.log-h{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.log-h h2{margin:0 auto 0 0;font-size:15px;font-weight:700}
+.log-list{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px}
+.log-list li{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 12px;border-top:1px solid var(--line)}
+.log-list li:first-child{border-top:0}
+.log-list .n{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.log-list .t{min-width:0}
+.log-list .t b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-list .t span{font-size:12.5px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-empty{border:1px dashed var(--line-strong);border-radius:8px;padding:14px;font-size:13px;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>Life Sciences Desk</b><span>Sourcing &amp; BD tracker</span></div>
+    <nav class="tabs" role="tablist" aria-label="Tools">
+      <button class="tab" role="tab" id="tab-boolean" aria-controls="view-boolean" aria-selected="true" data-view="boolean"><span class="n">1</span>RIG Boolean</button>
+      <button class="tab" role="tab" id="tab-middleton" aria-controls="view-middleton" aria-selected="false" data-view="middleton"><span class="n">2</span>Middleton Method</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============ PAGE 1: RIG → BOOLEAN ============ -->
+  <section id="view-boolean" role="tabpanel" aria-labelledby="tab-boolean">
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h1>Build a Boolean from a RIG</h1>
+          <p>Set the Role, Industry and Geography, paste the job description, and get a one-line search string ready for LinkedIn, Indeed or your ATS.</p>
+        </div>
+        <span class="badge" id="b-example-badge">Example search, replace with yours</span>
+      </div>
+
+      <div class="bench">
+        <div class="panel">
+          <div class="step">
+            <div class="step-h"><span class="k">STEP 1</span><h2>Your RIG</h2></div>
+            <div class="rig">
+              <div class="field">
+                <label for="rig-role"><span class="rig-letter">R</span>ole</label>
+                <input type="text" id="rig-role" placeholder="Director of Operations" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="rig-industry"><span class="rig-letter">I</span>ndustry</label>
+                <input type="text" id="rig-industry" list="industry-list" placeholder="Manufacturing" autocomplete="off">
+                <datalist id="industry-list"></datalist>
+              </div>
+              <div class="field">
+                <label for="rig-geo"><span class="rig-letter">G</span>eography</label>
+                <input type="text" id="rig-geo" placeholder="Dallas, TX" autocomplete="off">
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><span class="k">STEP 2</span><h2>Paste the job description</h2><small id="jd-count"></small></div>
+            <div class="field">
+              <label class="sr" for="rig-jd">Job description</label>
+              <textarea id="rig-jd" placeholder="Paste the full job description here…"></textarea>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><span class="k">STEP 3</span><h2>Get the string from ChatGPT</h2><small>Free, no sign-in</small></div>
+            <p class="lede">This copies your RIG, the job description and your format rules as one prompt and opens ChatGPT in a new tab. Paste it there with ⌘V / Ctrl+V and send.</p>
+            <div class="row">
+              <a class="btn primary big" id="g-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT ↗</a>
+              <button type="button" class="btn ghost" id="g-copy">Copy prompt only</button>
+            </div>
+            <details class="rules">
+              <summary>Your format rules</summary>
+              <div class="field">
+                <label class="sr" for="g-rules">Format rules sent with every prompt</label>
+                <textarea id="g-rules" rows="7"></textarea>
+                <div class="row"><span class="hint grow">Edits here are remembered in this browser.</span><button type="button" class="btn ghost" id="g-rules-reset">Reset to default</button></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><span class="k">STEP 4</span><h2>Paste ChatGPT's answer</h2></div>
+            <div class="field">
+              <label class="sr" for="g-answer">ChatGPT's answer</label>
+              <textarea id="g-answer" class="short" placeholder="Paste the Boolean string ChatGPT gave you…"></textarea>
+              <span class="hint">It's cleaned up as soon as you paste: one line, quotes on every phrase, AND / OR / NOT in caps, parentheses balanced.</span>
+            </div>
+            <div class="row"><button type="button" class="btn" id="g-use">Clean up &amp; use</button></div>
+            <div class="status" id="g-status" aria-live="polite"></div>
+          </div>
+
+          <div class="step alt">
+            <div class="step-h"><span class="k">OR</span><h2>Build it here instead</h2></div>
+            <p class="lede">Claude reads the job description and gives you term lists you can edit one by one. This counts toward your Claude plan's usage, like sending a chat message.</p>
+            <div class="row">
+              <button class="btn big" id="b-generate">Build with Claude</button>
+              <button class="btn" id="b-stop" hidden>Stop</button>
+              <button class="btn ghost" id="b-clear">Clear everything</button>
+            </div>
+            <div class="status" id="b-status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="panel sticky">
+          <div class="out-h">
+            <h2>Boolean string</h2>
+            <span class="badge ok" id="b-source" hidden></span>
+            <button class="btn primary" id="b-copy">Copy string</button>
+          </div>
+          <pre class="string" id="b-string" aria-live="polite"></pre>
+          <div class="meta"><span id="b-chars"></span><span id="b-terms"></span></div>
+
+          <div class="groups" id="b-groups"></div>
+          <p class="note" id="b-groups-note">Remove a term with ×, add one in the dashed box, or switch a whole block off. The string rebuilds as you edit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PAGE 2: MIDDLETON METHOD ============ -->
+  <section id="view-middleton" role="tabpanel" aria-labelledby="tab-middleton" hidden>
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h1>Middleton Method</h1>
+          <p>Log the role, its hiring managers and the candidate you're sending over. Copy the block and paste it straight into your tracking sheet.</p>
+        </div>
+        <span class="badge" id="m-example-badge">Example entry, clear to start</span>
+      </div>
+
+      <div class="bench">
+        <form class="panel" id="m-form" novalidate>
+          <div class="step">
+            <div class="step-h"><span class="k">THE ROLE</span><h2>Company &amp; position</h2></div>
+            <div class="qs">
+              <div class="field num-field">
+                <label for="m-num">Entry #</label>
+                <input type="number" id="m-num" min="1" inputmode="numeric">
+              </div>
+              <div class="field full">
+                <label for="m-company"><span class="q">1.</span>Company name</label>
+                <input type="text" id="m-company" autocomplete="off" placeholder="ACME Corp">
+              </div>
+              <div class="field">
+                <label for="m-position"><span class="q">2.</span>Position</label>
+                <input type="text" id="m-position" autocomplete="off" placeholder="Director of Operations">
+              </div>
+              <div class="field" id="m-link-field">
+                <label for="m-link"><span class="q">3.</span>Link to job description</label>
+                <input type="url" id="m-link" autocomplete="off" placeholder="https://…">
+                <span class="hint">Becomes a clickable link on the position cell.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><span class="k">CONTACTS</span><h2>Hiring managers</h2><small id="m-mgr-count"></small></div>
+            <div class="mgrs" id="m-mgrs"></div>
+            <div><button type="button" class="btn" id="m-add-mgr">+ Add manager</button></div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><span class="k">SUBMITTAL</span><h2>Candidate</h2></div>
+            <div class="cands" id="m-cands"></div>
+            <div><button type="button" class="btn ghost" id="m-add-cand">+ Add another candidate</button></div>
+          </div>
+
+          <div class="step">
+            <div class="row">
+              <button type="submit" class="btn primary big" id="m-save">Save to log</button>
+              <button type="button" class="btn ghost" id="m-new">Clear form</button>
+            </div>
+          </div>
+        </form>
+
+        <div class="sticky">
+          <div class="panel">
+            <div class="out-h">
+              <h2>Sheet preview</h2>
+              <button class="btn primary" id="m-copy">Copy for Excel</button>
+            </div>
+            <div class="sheet-scroll"><table class="sheet" id="m-sheet"></table></div>
+            <div class="copy-opts">
+              <label><input type="checkbox" id="m-include-header"> Include the header block</label>
+            </div>
+            <p class="note" id="m-copy-note" hidden><b>This is the example entry, so it won't copy.</b> Click any field to start your own.</p>
+            <p class="note">Click cell A1 (or wherever the block should start) in Excel or Google Sheets and paste. Borders, bold, the merged position cell and the job link come with it.</p>
+          </div>
+
+          <div class="panel log">
+            <div class="log-h">
+              <h2>Saved entries</h2>
+              <button class="btn" id="m-copy-all" disabled>Copy all for Excel</button>
+            </div>
+            <div id="m-log"></div>
+            <p class="note">Saved in this browser only. Your spreadsheet is still the record.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+let toastTimer;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------------- Tabs ---------------- */
+function showView(name){
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
+  $("#view-boolean").hidden = name !== "boolean";
+  $("#view-middleton").hidden = name !== "middleton";
+  store.set("md.view", name);
+  if (name === "middleton") prefillPositionFromRig();
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showView(t.dataset.view)));
+
+/* =========================================================
+   PAGE 1 — RIG BOOLEAN
+   ========================================================= */
+const GROUPS = [
+  { key:"titles",    label:"Job titles",        join:"OR" },
+  { key:"skills",    label:"Skills & keywords", join:"OR" },
+  { key:"industry",  label:"Industry",          join:"OR" },
+  { key:"locations", label:"Geography",         join:"OR" },
+  { key:"exclude",   label:"Exclude",           join:"NOT" }
+];
+const MAIN_KEYS = ["titles","skills","industry","locations"];
+
+const EXAMPLE_JD = `Director of Quality Assurance – Boston, MA
+
+We are a clinical-stage biopharmaceutical company moving its first biologic toward commercial launch. We are hiring a Director of Quality Assurance to lead GMP quality oversight across internal labs and our CDMO network.
+
+Responsibilities
+• Lead the QA team responsible for batch record review, lot disposition and release
+• Own the Quality Management System (QMS) in Veeva Vault: deviations, CAPA, change control
+• Host FDA and EMA inspections and manage CDMO and supplier audits
+• Oversee process, equipment and computer system validation (CSV)
+• Partner with Regulatory Affairs on BLA readiness
+
+Requirements
+• 12+ years in pharmaceutical or biotech quality, 5+ years managing QA teams
+• Deep knowledge of cGMP, 21 CFR Parts 210/211 and ICH Q10
+• Biologics or sterile manufacturing experience strongly preferred
+• Bachelor's degree in a life science; advanced degree a plus`;
+
+const EXAMPLE_B = {
+  example: true,
+  role: "Director of Quality Assurance", industry: "Pharmaceutical", geo: "Boston, MA", jd: EXAMPLE_JD,
+  groups: {
+    titles: ["Director of Quality Assurance","QA Director","Director of Quality","Head of Quality","Senior Director of Quality Assurance","Quality Assurance Director"],
+    skills: ["cGMP","CAPA","Quality Management System","Deviation Management","FDA Inspection","Validation","Veeva","Biologics"],
+    industry: ["Pharmaceutical","Biotech","Biopharma","Life Sciences"],
+    locations: ["Boston","Cambridge","Waltham","Lexington","Burlington","Woburn","Massachusetts"],
+    exclude: ["Recruiter","Intern","Assistant","Consultant"]
+  },
+  on: { titles:true, skills:true, industry:true, locations:true, exclude:false },
+  source: "example"
+};
+
+// Show the example until there's a real search saved (an untouched example or empty draft gets the current example)
+const storedB = store.get("md.boolean", null);
+let B = storedB && !storedB.example && (storedB.role || storedB.jd || storedB.raw) ? storedB : structuredClone(EXAMPLE_B);
+let sampleFn = null;        // Claude, when this view can use it
+let sampleCtl = null;
+
+const roleEl = $("#rig-role"), indEl = $("#rig-industry"), geoEl = $("#rig-geo"), jdEl = $("#rig-jd");
+
+function saveB(){ store.set("md.boolean", B); }
+
+function cleanTerm(t){
+  return String(t ?? "").replace(/["\u201C\u201D\u2018\u2019()\[\]{}]/g, " ").replace(/^\s*(AND|OR|NOT)\s+/i, "").replace(/\s+/g, " ").trim();
+}
+function uniq(arr){
+  const seen = new Set(), out = [];
+  for (const raw of arr){ const t = cleanTerm(raw); const k = t.toLowerCase(); if (t && !seen.has(k)){ seen.add(k); out.push(t); } }
+  return out;
+}
+function orBlock(terms){ return "(" + terms.map(t => `"${t}"`).join(" OR ") + ")"; }
+
+function buildBoolean(){
+  if (B.source === "chatgpt") return B.raw || "";
+  const parts = [];
+  for (const k of MAIN_KEYS){
+    if (!B.on[k]) continue;
+    const terms = uniq(B.groups[k] || []);
+    if (terms.length) parts.push(orBlock(terms));
+  }
+  let s = parts.join(" AND ");
+  if (s && B.on.exclude){
+    const ex = uniq(B.groups.exclude || []);
+    if (ex.length) s += " NOT " + orBlock(ex);
+  }
+  return s.replace(/[\r\n]+/g, " ");
+}
+
+function highlight(s){
+  if (!s) return '<span class="empty">Fill in your RIG and paste a job description, then get the string from ChatGPT (step 3) or build it here.</span>';
+  return s.replace(/("[^"]*")|\b(AND|OR)\b|\b(NOT)\b|([()])|([^"()A-Z]+|[A-Z])/g, (m, ph, op, not, pa) => {
+    if (ph) return `<span class="ph">${esc(ph)}</span>`;
+    if (op) return `<span class="op">${op}</span>`;
+    if (not) return `<span class="not">${not}</span>`;
+    if (pa) return `<span class="pa">${pa}</span>`;
+    return esc(m);
+  });
+}
+
+function renderBooleanOut(){
+  const s = buildBoolean();
+  $("#b-string").innerHTML = highlight(s);
+  const n = B.source === "chatgpt" ? (s.match(/"[^"]*"/g) || []).length
+          : MAIN_KEYS.concat(B.on.exclude ? ["exclude"] : []).reduce((a,k) => a + (B.on[k] ? uniq(B.groups[k]||[]).length : 0), 0);
+  $("#b-chars").textContent = s ? `${s.length.toLocaleString()} characters` : "";
+  $("#b-terms").textContent = s ? `${n} terms` : "";
+  $("#b-copy").disabled = !s;
+  const src = $("#b-source");
+  if (B.source === "claude"){ src.hidden = false; src.textContent = "Built by Claude"; src.className = "badge ok"; }
+  else if (B.source === "chatgpt"){ src.hidden = false; src.textContent = "From ChatGPT, cleaned"; src.className = "badge ok"; }
+  else if (B.source === "offline"){ src.hidden = false; src.textContent = "Keyword match"; src.className = "badge"; }
+  else src.hidden = true;
+  $("#b-example-badge").hidden = !B.example;
+}
+
+function renderGroups(){
+  const host = $("#b-groups");
+  $("#b-groups-note").hidden = B.source === "chatgpt";
+  if (B.source === "chatgpt"){
+    host.innerHTML = `<div class="group-note">This string came from ChatGPT. To change it, ask ChatGPT for a revision and paste the new answer in step 4, or select <b>Build with Claude</b> to edit term by term.</div>`;
+    return;
+  }
+  host.innerHTML = GROUPS.map(g => {
+    const terms = B.groups[g.key] || [];
+    const on = !!B.on[g.key];
+    const joinLabel = g.join === "NOT" ? "NOT (… OR …)" : "( … OR … )";
+    return `<div class="group${on ? "" : " off"}" data-key="${g.key}">
+      <div class="group-h"><strong>${esc(g.label)}</strong><span class="join">${joinLabel}</span>
+        <label class="toggle"><input type="checkbox" data-toggle="${g.key}"${on ? " checked" : ""}> Use</label></div>
+      <div class="chips">${terms.map((t,i) => `<span class="chip"><span>${esc(t)}</span><button type="button" aria-label="Remove ${esc(t)}" data-rm="${g.key}:${i}">×</button></span>`).join("")}
+        <input class="add-term" type="text" data-add="${g.key}" id="add-${g.key}" placeholder="+ add term" aria-label="Add a ${esc(g.label.toLowerCase())} term">
+      </div></div>`;
+  }).join("");
+}
+
+$("#b-groups").addEventListener("click", e => {
+  const rm = e.target.closest("[data-rm]");
+  if (!rm) return;
+  const [k, i] = rm.dataset.rm.split(":");
+  B.groups[k].splice(Number(i), 1); B.example = false;
+  saveB(); renderGroups(); renderBooleanOut();
+  const inp = document.getElementById("add-" + k); if (inp) inp.focus();
+});
+$("#b-groups").addEventListener("change", e => {
+  const tg = e.target.closest("[data-toggle]");
+  if (!tg) return;
+  B.on[tg.dataset.toggle] = tg.checked; B.example = false;
+  saveB(); tg.closest(".group").classList.toggle("off", !tg.checked); renderBooleanOut();
+});
+$("#b-groups").addEventListener("keydown", e => {
+  const inp = e.target.closest("[data-add]");
+  if (!inp) return;
+  if (e.key === "Enter" || e.key === ","){
+    e.preventDefault();
+    const k = inp.dataset.add;
+    const vals = inp.value.split(",").map(cleanTerm).filter(Boolean);
+    if (!vals.length) return;
+    B.groups[k] = uniq([...(B.groups[k] || []), ...vals]); B.example = false;
+    if (k === "exclude") B.on.exclude = true;
+    saveB(); renderGroups(); renderBooleanOut();
+    document.getElementById("add-" + k).focus();
+  }
+});
+
+function syncInputsFromB(){
+  roleEl.value = B.role || ""; indEl.value = B.industry || ""; geoEl.value = B.geo || ""; jdEl.value = B.jd || "";
+  updateJdCount();
+}
+function updateJdCount(){
+  const w = (jdEl.value.trim().match(/\S+/g) || []).length;
+  $("#jd-count").textContent = w ? `${w.toLocaleString()} words` : "";
+}
+[roleEl, indEl, geoEl, jdEl].forEach(el => el.addEventListener("input", () => {
+  B.role = roleEl.value; B.industry = indEl.value; B.geo = geoEl.value; B.jd = jdEl.value; B.example = false;
+  updateJdCount(); saveB(); $("#b-example-badge").hidden = true;
+}));
+
+$("#b-clear").addEventListener("click", () => {
+  B = { example:false, role:"", industry:"", geo:"", jd:"", groups:{titles:[],skills:[],industry:[],locations:[],exclude:[]},
+        on:{titles:true,skills:true,industry:true,locations:true,exclude:false}, source:"" };
+  saveB(); syncInputsFromB(); renderGroups(); renderBooleanOut(); setStatus("");
+  $("#g-answer").value = ""; $("#g-status").textContent = ""; roleEl.focus();
+});
+
+/* ---------- ChatGPT hand-off: copy a prompt out, clean the answer that comes back ---------- */
+const DEFAULT_RULES = `Write a Boolean search string to find candidates for this role.
+- Put it all on one single line.
+- Put quotation marks around every phrase and every single term.
+- AND, OR and NOT are always in all caps.
+- Include parentheses around every group of OR terms.
+- Cover job title variations, the key skills from the job description, the industry, and the location plus nearby cities.
+- Reply with only the Boolean string. No explanation.`;
+const rulesEl = $("#g-rules");
+rulesEl.value = store.get("md.rules", DEFAULT_RULES);
+rulesEl.addEventListener("input", () => store.set("md.rules", rulesEl.value));
+$("#g-rules-reset").addEventListener("click", () => { rulesEl.value = DEFAULT_RULES; store.set("md.rules", DEFAULT_RULES); });
+
+function chatgptPrompt(){
+  const role = roleEl.value.trim(), industry = indEl.value.trim(), geo = geoEl.value.trim(), jd = jdEl.value.trim();
+  return `${(rulesEl.value.trim() || DEFAULT_RULES)}
+
+RIG
+Role: ${role || "(see job description)"}
+Industry: ${industry || "(see job description)"}
+Geography: ${geo || "(not specified)"}
+
+JOB DESCRIPTION
+"""
+${jd || "(none, use the RIG only)"}
+"""`;
+}
+function promptReady(){
+  if (!roleEl.value.trim() && !jdEl.value.trim()){ toast("Add a Role or a job description first"); roleEl.focus(); return false; }
+  return true;
+}
+$("#g-open").addEventListener("click", e => {
+  if (!promptReady()){ e.preventDefault(); return; }
+  // The link opens ChatGPT in a new tab on its own; the copy happens in the same click.
+  copyText(chatgptPrompt()).then(ok => toast(ok ? "Prompt copied. Paste it into ChatGPT." : "Copy was blocked. Use Copy prompt only, then paste."));
+  setTimeout(() => $("#g-answer").focus({ preventScroll:true }), 300);
+});
+$("#g-copy").addEventListener("click", async () => {
+  if (!promptReady()) return;
+  const ok = await copyText(chatgptPrompt());
+  toast(ok ? "Prompt copied" : "Copy was blocked by this browser.");
+});
+
+/* Normalize any Boolean to the house format */
+function cleanBoolean(raw){
+  let s = String(raw || "").replace(/```[a-z]*/gi, "").replace(/`/g, "")
+    .replace(/[\u201C\u201D\u201E\u201F\u2033]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/\u00a0/g, " ");
+  const lines = s.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1){
+    // Keep the lines that are part of the string (quotes, parentheses or operators); drop ChatGPT's chatter around it
+    const parts = lines.filter(l => /["()]/.test(l) || /^(AND|OR|NOT)\b/i.test(l));
+    s = (parts.length ? parts : lines).join(" ");
+  }
+  s = s.replace(/^[^"(]*?:\s*(?=["(])/, "");               // "Boolean string: (..."
+  const toks = []; let buf = "";
+  const flush = () => { const t = buf.replace(/\s+/g, " ").trim().replace(/^[,;.]+|[,;.]+$/g, "").trim(); if (/[A-Za-z0-9]/.test(t)) toks.push({ t:"ph", v:t }); buf = ""; };
+  for (let i = 0; i < s.length;){
+    const ch = s[i];
+    if (ch === '"'){
+      flush();
+      const j = s.indexOf('"', i + 1);
+      const v = (j < 0 ? s.slice(i + 1) : s.slice(i + 1, j)).replace(/\s+/g, " ").trim();
+      if (v) toks.push({ t:"ph", v });
+      i = j < 0 ? s.length : j + 1; continue;
+    }
+    if (ch === "(" || ch === ")"){ flush(); toks.push({ t:ch }); i++; continue; }
+    const m = /^(AND|OR|NOT)(?![A-Za-z0-9])/i.exec(s.slice(i));
+    if (m && (i === 0 || /[\s()"]/.test(s[i - 1]))){ flush(); toks.push({ t:"op", v:m[1].toUpperCase() }); i += m[1].length; continue; }
+    buf += ch; i++;
+  }
+  flush();
+  // Drop operators at the edges or doubled up, and empty "()"
+  const clean = [];
+  for (const tk of toks){
+    const prev = clean[clean.length - 1];
+    if (tk.t === "op"){
+      if (tk.v === "NOT"){ if (prev && prev.t === "op") clean.pop(); clean.push(tk); continue; }   // "AND NOT" → "NOT"
+      if (!prev || prev.t === "op" || prev.t === "(") continue;
+    }
+    if (tk.t === ")" && prev && prev.t === "("){ clean.pop(); continue; }
+    if (tk.t === ")" && prev && prev.t === "op") clean.pop();
+    clean.push(tk);
+  }
+  while (clean.length && clean[clean.length - 1].t === "op") clean.pop();
+  let out = "", prev = null, depth = 0;
+  for (const tk of clean){
+    if (tk.t === ")" && depth === 0) continue;               // stray closer
+    const operand = tk.t === "ph" || tk.t === "(";
+    if (operand && prev && (prev.t === "ph" || prev.t === ")")) out += " AND ";   // implied AND made explicit
+    if (tk.t === "ph") out += depth === 0 ? `("${tk.v}")` : `"${tk.v}"`;   // every group gets parentheses
+    else if (tk.t === "op") out += ` ${tk.v} `;
+    else { out += tk.t; depth += tk.t === "(" ? 1 : -1; }
+    prev = tk;
+  }
+  out += ")".repeat(Math.max(0, depth));
+  return out.replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
+}
+
+function useAnswer(){
+  const raw = $("#g-answer").value;
+  if (!raw.trim()){ $("#g-status").textContent = "Paste ChatGPT's answer first."; return; }
+  const s = cleanBoolean(raw);
+  if (!s){ $("#g-status").textContent = "Couldn't find a Boolean string in that text. Copy just the string from ChatGPT and paste again."; return; }
+  B.source = "chatgpt"; B.raw = s; B.example = false;
+  B.role = roleEl.value; B.industry = indEl.value; B.geo = geoEl.value; B.jd = jdEl.value;
+  saveB(); renderGroups(); renderBooleanOut();
+  $("#g-status").textContent = s === raw.trim() ? "Looks good. It already matched your format." : "Cleaned up to match your format. Ready to copy.";
+}
+$("#g-use").addEventListener("click", useAnswer);
+$("#g-answer").addEventListener("paste", () => setTimeout(useAnswer, 0));
+
+$("#b-copy").addEventListener("click", async () => {
+  const s = buildBoolean(); if (!s) return;
+  const ok = await copyText(s);
+  toast(ok ? "Boolean copied" : "Select the string and copy it with ⌘C / Ctrl+C");
+  if (!ok) selectNode($("#b-string"));
+});
+
+function setStatus(html, busy){
+  $("#b-status").innerHTML = (busy ? '<span class="spin" aria-hidden="true"></span>' : "") + html;
+}
+
+/* ---------- Claude prompt ---------- */
+function buildPrompt(role, industry, geo, jd){
+  return `You are a senior recruiter and sourcing expert. Build the term lists for a Boolean candidate search.
+
+RIG
+- Role: ${role || "(not given; infer from the job description)"}
+- Industry: ${industry || "(not given; infer from the job description)"}
+- Geography: ${geo || "(not given)"}
+
+JOB DESCRIPTION
+"""
+${jd.slice(0, 14000) || "(none provided; work from the RIG only)"}
+"""
+
+Reply with only a JSON object in exactly this shape:
+{"titles":[], "skills":[], "industry":[], "locations":[], "exclude":[]}
+
+Rules:
+- titles: 4-8 job titles a qualified candidate would actually have on their LinkedIn profile today. Include the role as given, common synonyms and word-order variants (e.g. "Operations Director", "Head of Operations"), and equivalent-level titles. Nothing more junior than the role.
+- skills: 5-8 must-have skills, tools, certifications or methods from the job description, written the way candidates write them on resumes. Prefer the specific and searchable (e.g. "Six Sigma", "SAP", "P&L") over generic soft skills. Leave out "communication", "leadership", "team player" and degrees.
+- industry: 3-6 terms candidates use to describe this industry and its closest sub-sectors.
+- locations: if a geography is given, the city or region as given plus 4-8 nearby cities, suburbs, the metro nickname and the state name. If remote, ["Remote"] plus the country. Empty if no geography.
+- exclude: 2-4 words that commonly cause false-positive profiles for this search (e.g. "Recruiter", "Intern", "Assistant").
+- Every entry is a plain phrase of at most 5 words. No quotation marks, parentheses, or the words AND / OR / NOT inside entries.`;
+}
+
+/* ---------- Offline keyword fallback ---------- */
+const STATES = {"alabama":"AL","alaska":"AK","arizona":"AZ","arkansas":"AR","california":"CA","colorado":"CO","connecticut":"CT","delaware":"DE","florida":"FL","georgia":"GA","hawaii":"HI","idaho":"ID","illinois":"IL","indiana":"IN","iowa":"IA","kansas":"KS","kentucky":"KY","louisiana":"LA","maine":"ME","maryland":"MD","massachusetts":"MA","michigan":"MI","minnesota":"MN","mississippi":"MS","missouri":"MO","montana":"MT","nebraska":"NE","nevada":"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND","ohio":"OH","oklahoma":"OK","oregon":"OR","pennsylvania":"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD","tennessee":"TN","texas":"TX","utah":"UT","vermont":"VT","virginia":"VA","washington":"WA","west virginia":"WV","wisconsin":"WI","wyoming":"WY","puerto rico":"PR","district of columbia":"DC"};
+const ABBR_TO_STATE = Object.fromEntries(Object.entries(STATES).map(([n,a]) => [a, n.replace(/\b\w/g, c => c.toUpperCase())]));
+const METROS = {
+  "dallas":["Dallas","Fort Worth","DFW","Plano","Irving","Arlington","Frisco"],
+  "fort worth":["Fort Worth","Dallas","DFW","Arlington","Irving"],
+  "houston":["Houston","The Woodlands","Sugar Land","Katy","Pasadena"],
+  "austin":["Austin","Round Rock","Georgetown","Cedar Park"],
+  "san antonio":["San Antonio","New Braunfels","Boerne"],
+  "new york":["New York","NYC","Manhattan","Brooklyn","Jersey City","Long Island"],
+  "los angeles":["Los Angeles","Orange County","Long Beach","Irvine","Pasadena","Burbank"],
+  "chicago":["Chicago","Naperville","Schaumburg","Oak Brook","Evanston"],
+  "atlanta":["Atlanta","Alpharetta","Marietta","Sandy Springs","Duluth"],
+  "miami":["Miami","Fort Lauderdale","Boca Raton","Doral","West Palm Beach"],
+  "orlando":["Orlando","Lake Mary","Kissimmee","Sanford"],
+  "tampa":["Tampa","St. Petersburg","Clearwater","Brandon"],
+  "phoenix":["Phoenix","Scottsdale","Tempe","Chandler","Mesa"],
+  "denver":["Denver","Aurora","Boulder","Englewood","Lakewood"],
+  "seattle":["Seattle","Bellevue","Redmond","Tacoma","Everett"],
+  "san francisco":["San Francisco","Bay Area","Oakland","San Jose","Palo Alto"],
+  "san jose":["San Jose","Silicon Valley","Santa Clara","Sunnyvale","Palo Alto"],
+  "san diego":["San Diego","Carlsbad","La Jolla","Chula Vista"],
+  "boston":["Boston","Cambridge","Waltham","Burlington","Woburn"],
+  "philadelphia":["Philadelphia","King of Prussia","Cherry Hill","Conshohocken"],
+  "pittsburgh":["Pittsburgh","Cranberry Township","Monroeville"],
+  "charlotte":["Charlotte","Concord","Rock Hill","Huntersville"],
+  "raleigh":["Raleigh","Durham","Research Triangle","Cary","Morrisville"],
+  "nashville":["Nashville","Franklin","Brentwood","Murfreesboro"],
+  "minneapolis":["Minneapolis","St. Paul","Twin Cities","Bloomington","Eden Prairie"],
+  "detroit":["Detroit","Troy","Auburn Hills","Dearborn","Southfield"],
+  "cleveland":["Cleveland","Akron","Independence","Beachwood"],
+  "columbus":["Columbus","Dublin","Westerville","Worthington"],
+  "cincinnati":["Cincinnati","Mason","Blue Ash","Northern Kentucky"],
+  "indianapolis":["Indianapolis","Carmel","Fishers","Noblesville"],
+  "st. louis":["St. Louis","Clayton","Chesterfield","St. Charles"],
+  "kansas city":["Kansas City","Overland Park","Olathe","Lenexa"],
+  "washington":["Washington DC","DC","Arlington","Reston","Bethesda","Tysons"],
+  "baltimore":["Baltimore","Towson","Columbia","Annapolis"],
+  "las vegas":["Las Vegas","Henderson","Summerlin"],
+  "salt lake city":["Salt Lake City","Lehi","Provo","Sandy"],
+  "portland":["Portland","Beaverton","Hillsboro","Vancouver WA"],
+  "milwaukee":["Milwaukee","Waukesha","Brookfield"],
+  "san juan":["San Juan","Guaynabo","Carolina","Bayamón","Caguas"]
+};
+const INDUSTRIES = {
+  "manufacturing":["Manufacturing","Industrial","Production","Plant Operations"],
+  "healthcare":["Healthcare","Hospital","Health System","Clinical"],
+  "construction":["Construction","General Contractor","Commercial Construction","Building"],
+  "logistics":["Logistics","Supply Chain","Distribution","Warehousing","3PL"],
+  "supply chain":["Supply Chain","Logistics","Distribution","Procurement"],
+  "technology":["Technology","Software","SaaS","IT"],
+  "software":["Software","SaaS","Technology","Cloud"],
+  "saas":["SaaS","Software","Cloud","B2B Software"],
+  "finance":["Financial Services","Banking","Finance","Investment"],
+  "banking":["Banking","Financial Services","Commercial Banking","Bank"],
+  "insurance":["Insurance","P&C","Property and Casualty","Underwriting"],
+  "retail":["Retail","E-commerce","Consumer","Stores"],
+  "hospitality":["Hospitality","Hotel","Resort","Food and Beverage"],
+  "energy":["Energy","Oil and Gas","Utilities","Power"],
+  "oil and gas":["Oil and Gas","Energy","Upstream","Midstream","Downstream"],
+  "pharma":["Pharmaceutical","Pharma","Life Sciences","Biotech"],
+  "pharmaceutical":["Pharmaceutical","Pharma","Life Sciences","Biotech"],
+  "biotech":["Biotech","Biotechnology","Life Sciences","Pharmaceutical"],
+  "life sciences":["Life Sciences","Biotech","Pharmaceutical","Medical Device"],
+  "medical device":["Medical Device","MedTech","Life Sciences","Medical Equipment"],
+  "automotive":["Automotive","Auto Parts","OEM","Tier 1"],
+  "aerospace":["Aerospace","Defense","Aviation","A&D"],
+  "defense":["Defense","Aerospace","Government Contracting","A&D"],
+  "food and beverage":["Food and Beverage","Food Manufacturing","CPG","Food Processing"],
+  "cpg":["CPG","Consumer Goods","Consumer Packaged Goods","FMCG"],
+  "consumer goods":["Consumer Goods","CPG","Consumer Products","FMCG"],
+  "real estate":["Real Estate","Property Management","Commercial Real Estate","CRE"],
+  "telecom":["Telecommunications","Telecom","Wireless","Network"],
+  "education":["Education","Higher Education","University","EdTech"],
+  "government":["Government","Public Sector","Federal","State Government"],
+  "legal":["Legal","Law Firm","Litigation","Corporate Law"],
+  "nonprofit":["Nonprofit","Non-profit","NGO","Foundation"],
+  "chemicals":["Chemicals","Chemical Manufacturing","Specialty Chemicals","Process"],
+  "utilities":["Utilities","Utility","Energy","Power"],
+  "staffing":["Staffing","Recruiting","Talent Acquisition","Workforce Solutions"]
+};
+const SKILLS = ["Lean Manufacturing","Lean","Six Sigma","Lean Six Sigma","Kaizen","5S","Continuous Improvement","Value Stream Mapping","OEE","S&OP","P&L","Budgeting","Forecasting","Capacity Planning","Inventory Management","Supply Chain","Procurement","Strategic Sourcing","Vendor Management","Logistics","Warehouse Management","WMS","TMS","ERP","SAP","Oracle","NetSuite","Microsoft Dynamics","Salesforce","HubSpot","Workday","ADP","UKG","Kronos","Tableau","Power BI","Excel","SQL","Python","Java","JavaScript","TypeScript","React","Node.js","AWS","Azure","GCP","Kubernetes","Docker","Terraform","CI/CD","DevOps","Agile","Scrum","Jira","PMP","Project Management","Program Management","Change Management","Process Improvement","ISO 9001","ISO 13485","IATF 16949","FDA","GMP","cGMP","HACCP","OSHA","EHS","Quality Assurance","Quality Control","Root Cause Analysis","FMEA","PPAP","APQP","Preventive Maintenance","Plant Management","Multi-site","Union","Labor Relations","M&A","FP&A","GAAP","CPA","CFA","Financial Modeling","Revenue Cycle","Accounts Payable","Accounts Receivable","Payroll","Talent Acquisition","Full Cycle Recruiting","HRIS","Employee Relations","Compensation","Benefits","Business Development","Account Management","B2B Sales","SaaS Sales","Enterprise Sales","Channel Sales","Pipeline Management","CRM","Customer Success","Digital Marketing","SEO","SEM","Content Marketing","Brand Management","Product Management","Product Marketing","UX","UI Design","Figma","Data Analytics","Machine Learning","Cybersecurity","Network Security","CISSP","ITIL","Cloud","Construction Management","Estimating","Preconstruction","AutoCAD","Revit","Primavera P6","Procore","Contract Negotiation","Risk Management","Compliance","Regulatory Affairs","Clinical Research","EMR","Epic","Cerner","HIPAA","RN","Patient Care","Underwriting","Claims","Revenue Management","Food Safety","Hotel Operations","Guest Experience","CDL","Fleet Management","Last Mile","Distribution Center","Customer Service","Call Center","Training","Coaching"];
+const ACRO_STOP = new Set(["US","USA","EOE","EEO","LLC","INC","CEO","CFO","COO","CTO","VP","HR","II","III","IV","PTO","AM","PM","TX","CA","NY","FL","OK","OR","AND","NOT","THE","FOR","ID","IT","ADA","USD","BS","BA","MS","MBA","GED","FAQ","DM","FT"]);
+
+function titleCase(s){ return s.replace(/\b([a-z])/g, c => c.toUpperCase()).replace(/\b(Of|And|The|For|In)\b/g, w => w.toLowerCase()); }
+function titleVariants(role){
+  const r = cleanTerm(role); if (!r) return [];
+  const out = [r]; let m;
+  const base = r.replace(/^(senior|sr\.?)\s+/i, "");
+  if (base !== r) out.push(base, "Sr. " + base);
+  if ((m = base.match(/^director\s+of\s+(.+)$/i))){ const f = titleCase(m[1]); out.push(`${f} Director`, `Head of ${f}`, `Senior Director of ${f}`, `Director, ${f}`); }
+  else if ((m = base.match(/^(.+?)\s+director$/i))){ const f = titleCase(m[1]); out.push(`Director of ${f}`, `Head of ${f}`, `Senior ${f} Director`); }
+  if ((m = base.match(/^(?:vp|vice president)\s*(?:of|,)?\s+(.+)$/i))){ const f = titleCase(m[1]); out.push(`Vice President of ${f}`, `VP of ${f}`, `VP ${f}`, `Head of ${f}`); }
+  if ((m = base.match(/^manager\s+of\s+(.+)$/i))){ const f = titleCase(m[1]); out.push(`${f} Manager`, `Senior ${f} Manager`); }
+  else if ((m = base.match(/^(.+?)\s+manager$/i))){ const f = titleCase(m[1]); out.push(`Manager of ${f}`, `Senior ${f} Manager`, `${f} Lead`); }
+  if ((m = base.match(/^(.+?)\s+engineer$/i))){ const f = titleCase(m[1]); out.push(`Senior ${f} Engineer`, `${f} Developer`); }
+  if ((m = base.match(/^head\s+of\s+(.+)$/i))){ const f = titleCase(m[1]); out.push(`Director of ${f}`, `${f} Director`, `VP of ${f}`); }
+  if (/^chief\s/i.test(base) || /^(ceo|cfo|coo|cto|cio|cmo|cro|chro)$/i.test(base)) out.push(base.toUpperCase().length <= 4 ? base.toUpperCase() : base);
+  return uniq(out).slice(0, 8);
+}
+function extractSkills(jd){
+  const text = " " + jd + " ";
+  const scored = [];
+  for (const s of SKILLS){
+    const re = new RegExp("(^|[^A-Za-z0-9])" + s.replace(/[.*+?^${}()|[\]\\/&]/g, "\\$&") + "(?=[^A-Za-z0-9]|$)", "gi");
+    const hits = (text.match(re) || []).length;
+    if (hits) scored.push([s, hits + (s.includes(" ") ? 0.5 : 0)]);
+  }
+  const acr = {};
+  for (const a of jd.match(/\b[A-Z][A-Z0-9&/]{1,5}\b/g) || []){ if (!ACRO_STOP.has(a)) acr[a] = (acr[a] || 0) + 1; }
+  for (const [a, n] of Object.entries(acr)) if (!scored.some(([s]) => s.toLowerCase() === a.toLowerCase())) scored.push([a, n * 0.8]);
+  scored.sort((x, y) => y[1] - x[1]);
+  // Drop a shorter term when a longer one that contains it is already in (Lean vs Lean Manufacturing)
+  const picked = [];
+  for (const [s] of scored){
+    if (picked.some(p => p.toLowerCase().includes(s.toLowerCase()))) continue;
+    picked.push(s); if (picked.length >= 8) break;
+  }
+  return picked;
+}
+function industryTerms(ind, jd){
+  const out = [];
+  const parts = ind.split(/[,/;|]+/).map(cleanTerm).filter(Boolean);
+  for (const p of parts){
+    out.push(p);
+    const key = Object.keys(INDUSTRIES).find(k => p.toLowerCase().includes(k));
+    if (key) out.push(...INDUSTRIES[key]);
+  }
+  if (!parts.length){
+    const low = jd.toLowerCase();
+    const key = Object.keys(INDUSTRIES).find(k => low.includes(k));
+    if (key) out.push(...INDUSTRIES[key]);
+  }
+  return uniq(out).slice(0, 6);
+}
+function locationTerms(geo){
+  const g = cleanTerm(geo); if (!g) return [];
+  if (/remote/i.test(g)) return uniq(["Remote", /canada/i.test(g) ? "Canada" : "United States"]);
+  const parts = g.split(",").map(s => s.trim()).filter(Boolean);
+  const out = [];
+  const city = parts[0];
+  const metroKey = Object.keys(METROS).find(k => city.toLowerCase() === k || city.toLowerCase().startsWith(k));
+  if (metroKey) out.push(...METROS[metroKey]); else out.push(city);
+  for (const p of parts.slice(1)){
+    const up = p.toUpperCase();
+    if (ABBR_TO_STATE[up]) out.push(ABBR_TO_STATE[up]);
+    else if (STATES[p.toLowerCase()]) out.push(titleCase(p.toLowerCase()));
+    else out.push(p);
+  }
+  if (parts.length === 1){
+    const st = STATES[city.toLowerCase()]; if (st) return uniq([titleCase(city.toLowerCase())]);
+  }
+  return uniq(out).slice(0, 9);
+}
+function offlineGroups(role, industry, geo, jd){
+  let r = role;
+  if (!r){ const first = jd.split("\n").map(s => s.trim()).find(Boolean) || ""; r = first.split(/[–—|-]/)[0].slice(0, 60); }
+  return {
+    titles: titleVariants(r),
+    skills: extractSkills(jd),
+    industry: industryTerms(industry, jd),
+    locations: locationTerms(geo),
+    exclude: ["Recruiter","Intern","Assistant"]
+  };
+}
+
+function normalizeGroups(data){
+  const g = {};
+  for (const { key } of GROUPS){
+    const arr = Array.isArray(data?.[key]) ? data[key] : [];
+    g[key] = uniq(arr.filter(x => typeof x === "string").map(x => x.split(/\s+/).length > 6 ? "" : x)).slice(0, 10);
+  }
+  return g;
+}
+
+const HIDE_CODES = new Set(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"]);
+$("#b-generate").addEventListener("click", async () => {
+  const role = roleEl.value.trim(), industry = indEl.value.trim(), geo = geoEl.value.trim(), jd = jdEl.value.trim();
+  if (!role && !jd){ setStatus("Add at least a Role or a job description first."); roleEl.focus(); return; }
+  B.role = role; B.industry = industry; B.geo = geo; B.jd = jd; B.example = false;
+
+  let groups = null, source = "offline", note = "";
+  if (sampleFn){
+    sampleCtl = new AbortController();
+    $("#b-generate").disabled = true; $("#b-stop").hidden = false;
+    setStatus("Reading the job description and building your term lists. This usually takes 10–40 seconds.", true);
+    try {
+      const data = await sampleFn.json(buildPrompt(role, industry, geo, jd), { signal: sampleCtl.signal });
+      groups = normalizeGroups(data); source = "claude";
+      if (!MAIN_KEYS.some(k => groups[k].length)) { groups = null; note = "Claude returned no terms, so this was built by keyword match."; }
+    } catch (e){
+      if (e && e.code === "cancelled"){ setStatus("Stopped. Your previous string is unchanged."); resetGenBtn(); return; }
+      if (e && HIDE_CODES.has(e.code)) sampleFn = null;
+      note = e && e.code === "rate_limited" ? "Claude is busy for this account right now, so this was built by keyword match. Try again in a minute for a smarter string."
+           : "Claude couldn't answer, so this was built by keyword match.";
+    }
+    resetGenBtn();
+  } else {
+    note = "Built by keyword match. Open this page in Claude to have Claude read the job description for you.";
+  }
+  if (!groups){ groups = offlineGroups(role, industry, geo, jd); source = "offline"; }
+  B.groups = groups; B.source = source;
+  B.on = { titles:true, skills:true, industry:true, locations:!!groups.locations.length, exclude:false };
+  saveB(); renderGroups(); renderBooleanOut();
+  setStatus(source === "claude" ? "Done. Trim or add terms on the right, then copy." : note);
+});
+function resetGenBtn(){ $("#b-generate").disabled = false; $("#b-stop").hidden = true; sampleCtl = null; }
+$("#b-stop").addEventListener("click", () => sampleCtl?.abort());
+
+$("#industry-list").innerHTML = Object.keys(INDUSTRIES).map(k => `<option value="${esc(titleCase(k))}">`).join("");
+
+/* =========================================================
+   PAGE 2 — MIDDLETON METHOD
+   ========================================================= */
+const blankMgr = () => ({ title:"", name:"", email:"", phone:"" });
+const EXAMPLE_E = {
+  example: true, id: null, num: "1",
+  company: "ACME Corp", position: "Director of Operations", link: "https://example.com/jobs/director-of-operations",
+  managers: [{ title:"VP of Operations", name:"John Doe", email:"Manager@company.com", phone:"(555) 555-5555" }],
+  candidates: ["Doe Johnson"]
+};
+let LOG = store.get("md.log", []);
+let E = store.get("md.entry", null) || structuredClone(EXAMPLE_E);
+if (!E.managers?.length) E.managers = [blankMgr()];
+if (!E.candidates?.length) E.candidates = [""];
+
+function saveE(){ store.set("md.entry", E); }
+function saveLog(){ store.set("md.log", LOG); }
+function nextNum(){ return String(LOG.reduce((m, x) => Math.max(m, Number(x.num) || 0), 0) + 1); }
+function markEdited(){ if (E.example){ E.example = false; $("#m-example-badge").hidden = true; } }
+
+/* The example never leaves the page: it isn't copied, saved, or included in Copy all */
+const norm = v => String(v ?? "").trim().toLowerCase();
+function isExampleEntry(x){
+  if (!x) return false;
+  if (x.example) return true;
+  // Any trace of the sample data marks it, even if part of it was edited before saving
+  const ex = EXAMPLE_E, em = ex.managers[0];
+  if (norm(x.company) === norm(ex.company)) return true;
+  if (norm(x.link) && norm(x.link) === norm(ex.link)) return true;
+  if ((x.candidates || []).some(c => norm(c) === norm(ex.candidates[0]))) return true;
+  return (x.managers || []).some(m => norm(m.email) === norm(em.email) || (norm(m.name) === norm(em.name) && norm(m.title) === norm(em.title)));
+}
+function copyableLog(){ return LOG.filter(x => !isExampleEntry(x)).sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0)); }
+function updateCopyState(){
+  const ex = isExampleEntry(E);
+  $("#m-copy").disabled = ex;
+  $("#m-copy-note").hidden = !ex;
+  $("#m-copy-all").disabled = !copyableLog().length;
+}
+// Typing into the example starts a clean entry, so none of the sample names carry into a real one
+$("#m-form").addEventListener("focusin", e => {
+  if (!E.example || !e.target.matches("input")) return;
+  const id = e.target.id;
+  newEntry();
+  const again = document.getElementById(id); if (again) again.focus();
+});
+
+function formatPhone(v){
+  const d = String(v).replace(/\D/g, "");
+  if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+  if (d.length === 11 && d[0] === "1") return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+  return String(v).trim();
+}
+function normUrl(v){
+  const s = String(v || "").trim(); if (!s) return "";
+  if (/^https?:\/\//i.test(s)) return s;
+  if (/^[\w-]+(\.[\w-]+)+/.test(s)) return "https://" + s;
+  return s;
+}
+const isEmail = v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
+function renderTopFields(){
+  $("#m-num").value = E.num; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
+  $("#m-example-badge").hidden = !E.example;
+}
+["num","company","position","link"].forEach(k => {
+  const el = $("#m-" + k);
+  el.addEventListener("input", () => { E[k] = el.value; markEdited(); saveE(); renderSheet(); });
+});
+$("#m-link").addEventListener("blur", e => { E.link = normUrl(e.target.value); e.target.value = E.link; saveE(); renderSheet(); });
+
+function renderMgrs(){
+  const host = $("#m-mgrs");
+  host.innerHTML = E.managers.map((m, i) => `
+    <fieldset class="mgr" data-i="${i}" style="margin:0">
+      <div class="mgr-h"><strong>Manager ${i + 1}</strong>${E.managers.length > 1 ? `<button type="button" class="btn ghost" data-rm-mgr="${i}">Remove</button>` : ""}</div>
+      <div class="qs">
+        <div class="field"><label for="mg${i}-title"><span class="q">4.</span>Hiring manager title</label><input type="text" id="mg${i}-title" data-f="title" value="${esc(m.title)}" placeholder="VP of Operations" autocomplete="off"></div>
+        <div class="field"><label for="mg${i}-name"><span class="q">5.</span>Hiring manager name</label><input type="text" id="mg${i}-name" data-f="name" value="${esc(m.name)}" placeholder="John Doe" autocomplete="off"></div>
+        <div class="field${isEmail(m.email) ? "" : " bad"}"><label for="mg${i}-email"><span class="q">6.</span>Hiring manager email</label><input type="email" id="mg${i}-email" data-f="email" value="${esc(m.email)}" placeholder="name@company.com" autocomplete="off"><span class="err"${isEmail(m.email) ? " hidden" : ""}>Check this email address.</span></div>
+        <div class="field"><label for="mg${i}-phone"><span class="q">7.</span>Hiring manager phone</label><input type="tel" id="mg${i}-phone" data-f="phone" value="${esc(m.phone)}" placeholder="(555) 555-5555" autocomplete="off"></div>
+      </div>
+    </fieldset>`).join("");
+  $("#m-mgr-count").textContent = `${E.managers.length} ${E.managers.length === 1 ? "manager" : "managers"}`;
+}
+$("#m-mgrs").addEventListener("input", e => {
+  const inp = e.target.closest("[data-f]"); if (!inp) return;
+  const i = Number(inp.closest(".mgr").dataset.i);
+  E.managers[i][inp.dataset.f] = inp.value; markEdited(); saveE(); renderSheet();
+});
+$("#m-mgrs").addEventListener("focusout", e => {
+  const inp = e.target.closest("[data-f]"); if (!inp) return;
+  const i = Number(inp.closest(".mgr").dataset.i), f = inp.dataset.f;
+  if (f === "phone"){ inp.value = E.managers[i].phone = formatPhone(inp.value); }
+  if (f === "email"){
+    E.managers[i].email = inp.value.trim(); inp.value = E.managers[i].email;
+    const ok = isEmail(inp.value), field = inp.closest(".field");
+    field.classList.toggle("bad", !ok); field.querySelector(".err").hidden = ok;
+  }
+  saveE(); renderSheet();
+});
+$("#m-mgrs").addEventListener("click", e => {
+  const b = e.target.closest("[data-rm-mgr]"); if (!b) return;
+  E.managers.splice(Number(b.dataset.rmMgr), 1); markEdited(); saveE(); renderMgrs(); renderSheet();
+});
+$("#m-add-mgr").addEventListener("click", () => {
+  E.managers.push(blankMgr()); markEdited(); saveE(); renderMgrs(); renderSheet();
+  document.getElementById(`mg${E.managers.length - 1}-title`).focus();
+});
+
+function renderCands(){
+  $("#m-cands").innerHTML = E.candidates.map((c, i) => `
+    <div class="field">
+      ${i === 0 ? `<label for="cand0"><span class="q">8.</span>Candidate found from Boolean</label>` : `<label class="sr" for="cand${i}">Candidate ${i + 1}</label>`}
+      <div class="cand"><input type="text" id="cand${i}" data-ci="${i}" value="${esc(c)}" placeholder="Candidate name" autocomplete="off">
+      ${i > 0 ? `<button type="button" class="btn ghost" data-rm-cand="${i}" aria-label="Remove candidate ${i + 1}">Remove</button>` : ""}</div>
+    </div>`).join("");
+}
+$("#m-cands").addEventListener("input", e => {
+  const inp = e.target.closest("[data-ci]"); if (!inp) return;
+  E.candidates[Number(inp.dataset.ci)] = inp.value; markEdited(); saveE(); renderSheet();
+});
+$("#m-cands").addEventListener("click", e => {
+  const b = e.target.closest("[data-rm-cand]"); if (!b) return;
+  E.candidates.splice(Number(b.dataset.rmCand), 1); saveE(); renderCands(); renderSheet();
+});
+$("#m-add-cand").addEventListener("click", () => {
+  E.candidates.push(""); saveE(); renderCands(); document.getElementById(`cand${E.candidates.length - 1}`).focus();
+});
+
+/* ---------- The sheet model: rows of cells across columns A–F ---------- */
+// cell: { v, bold, border, center, span, href, text }
+function headerRows(){
+  const rows = [[
+    { v:"#", center:true }, { v:"Company Name", bold:true, border:true, center:true },
+    { v:"Position/ Link", bold:true, border:true, center:true, span:3 }, { v:"Candidate Name" }
+  ]];
+  for (let i = 0; i < 3; i++) rows.push([
+    { v:"" }, { v:"Hiring manager Job Title", border:true, center:true }, { v:"Manager Name", border:true, center:true },
+    { v:"Manager Email", border:true, center:true }, { v:"Manager Phone", border:true, center:true }, { v:"" }
+  ]);
+  return rows;
+}
+function entryRows(e){
+  const cands = (e.candidates || []).map(c => String(c).trim()).filter(Boolean);
+  const mgrs = (e.managers || []).filter(m => m.title || m.name || m.email || m.phone);
+  const n = Math.max(3, mgrs.length, cands.length - 1);
+  const rows = [[
+    { v:e.num, center:true }, { v:e.company, bold:true, border:true, center:true },
+    { v:e.position, bold:true, border:true, center:true, span:3, href:normUrl(e.link) }, { v:cands[0] || "" }
+  ]];
+  for (let i = 0; i < n; i++){
+    const m = mgrs[i] || blankMgr();
+    rows.push([
+      { v:"" }, { v:m.title, border:true, center:true }, { v:m.name, border:true, center:true },
+      { v:m.email, border:true, center:true }, { v:m.phone, border:true, center:true, text:true }, { v:cands[i + 1] || "" }
+    ]);
+  }
+  return rows;
+}
+const BLANK_ROW = [{v:""},{v:""},{v:""},{v:""},{v:""},{v:""}];
+function blocksToRows(blocks){
+  const rows = [];
+  blocks.forEach((b, i) => { if (i) rows.push(BLANK_ROW, BLANK_ROW); rows.push(...b); });
+  return rows;
+}
+
+/* Clipboard HTML with inline styles — Excel and Google Sheets both read these */
+function rowsToClipboardHTML(rows){
+  const widths = [40, 190, 150, 210, 140, 160];
+  const cols = widths.map(w => `<col width="${w}" style="width:${w}px">`).join("");
+  const body = rows.map(r => "<tr>" + r.map(c => {
+    const st = ["font-family:Arial,sans-serif","font-size:10pt","vertical-align:middle","height:21px"];
+    if (c.border) st.push("border:1px solid #000000");
+    st.push("text-align:" + (c.center ? "center" : "left"));
+    if (c.bold) st.push("font-weight:bold");
+    if (c.text) st.push("mso-number-format:'\\@'");
+    const inner = c.href && c.v ? `<a href="${esc(c.href)}">${esc(c.v)}</a>` : esc(c.v);
+    return `<td${c.span ? ` colspan="${c.span}"` : ""} style="${st.join(";")}">${inner}</td>`;
+  }).join("") + "</tr>").join("");
+  return `<meta charset="utf-8"><table style="border-collapse:collapse">${cols}${body}</table>`;
+}
+function rowsToTSV(rows){
+  return rows.map(r => r.flatMap(c => {
+    const v = String(c.v ?? "").replace(/[\t\r\n]+/g, " ");
+    return c.span ? [v, ...Array(c.span - 1).fill("")] : [v];
+  }).join("\t")).join("\n");
+}
+
+function currentBlocks(){
+  const blocks = [];
+  if ($("#m-include-header").checked) blocks.push(headerRows());
+  blocks.push(entryRows(E));
+  return blocks;
+}
+
+function renderSheet(){
+  const rows = blocksToRows(currentBlocks());
+  const letters = ["A","B","C","D","E","F"];
+  const widths = ["5%","20%","16%","23%","17%","19%"];
+  let html = `<colgroup><col style="width:34px">${widths.map(w => `<col style="width:${w}">`).join("")}</colgroup>`;
+  html += `<thead><tr><th class="rn" aria-hidden="true"></th>${letters.map(l => `<th scope="col">${l}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach((r, ri) => {
+    html += `<tr><td class="rn">${ri + 1}</td>`;
+    for (const c of r){
+      const cls = [c.border && "b", c.center && "c", c.bold && "bold"].filter(Boolean).join(" ");
+      const inner = c.href && c.v ? `<a href="${esc(c.href)}" target="_blank" rel="noopener">${esc(c.v)}</a>` : esc(c.v);
+      html += `<td${c.span ? ` colspan="${c.span}"` : ""}${cls ? ` class="${cls}"` : ""} title="${esc(c.v)}">${inner}</td>`;
+    }
+    html += "</tr>";
+  });
+  $("#m-sheet").innerHTML = html + "</tbody>";
+  updateCopyState();
+}
+$("#m-include-header").addEventListener("change", () => { store.set("md.header", $("#m-include-header").checked); renderSheet(); });
+
+$("#m-copy").addEventListener("click", async () => {
+  if (isExampleEntry(E)){ toast("That's the example entry. Fill in your own to copy it."); return; }
+  const rows = blocksToRows(currentBlocks());
+  const ok = await copyRich(rowsToClipboardHTML(rows), rowsToTSV(rows));
+  toast(ok ? "Copied. Paste it into your sheet." : "Copy was blocked. Select the preview table and copy it.");
+});
+
+/* ---------- Saved log ---------- */
+function renderLog(){
+  const host = $("#m-log");
+  updateCopyState();
+  if (!LOG.length){ host.innerHTML = `<div class="log-empty">Nothing saved yet. Select <b>Save to log</b> to keep an entry here and copy several at once.</div>`; return; }
+  const sorted = [...LOG].sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0));
+  host.innerHTML = `<ul class="log-list">${sorted.map(x => {
+    const c = (x.candidates || []).filter(s => String(s).trim());
+    const exTag = isExampleEntry(x) ? ` <span class="badge">Example, not copied</span>` : "";
+    return `<li><span class="n">#${esc(x.num)}</span><span class="t"><b>${esc(x.company || "Untitled company")}${exTag}</b><span>${esc(x.position || "No position")}${c.length ? " · " + esc(c.join(", ")) : ""}</span></span>
+      <span class="row"><button type="button" class="btn ghost" data-edit="${esc(x.id)}">Edit</button><button type="button" class="btn ghost" data-del="${esc(x.id)}">Delete</button></span></li>`;
+  }).join("")}</ul>`;
+}
+$("#m-log").addEventListener("click", e => {
+  const ed = e.target.closest("[data-edit]"), del = e.target.closest("[data-del]");
+  if (ed){
+    const x = LOG.find(l => l.id === ed.dataset.edit); if (!x) return;
+    E = structuredClone(x); E.example = false;
+    if (!E.managers?.length) E.managers = [blankMgr()];
+    if (!E.candidates?.length) E.candidates = [""];
+    saveE(); renderEntryForm(); toast(`Editing #${E.num}`);
+    $("#m-company").focus();
+  }
+  if (del){
+    if (del.dataset.armed !== "1"){ del.dataset.armed = "1"; del.textContent = "Confirm delete"; setTimeout(() => { del.dataset.armed = ""; del.textContent = "Delete"; }, 3000); return; }
+    LOG = LOG.filter(l => l.id !== del.dataset.del); saveLog(); renderLog(); toast("Entry deleted");
+  }
+});
+$("#m-form").addEventListener("submit", e => {
+  e.preventDefault();
+  if (isExampleEntry(E)){ toast("That's the example entry. Fill in your own to save it."); return; }
+  if (!E.company.trim() && !E.position.trim()){ toast("Add a company or position first"); $("#m-company").focus(); return; }
+  const rec = structuredClone(E); delete rec.example;
+  rec.link = normUrl(rec.link);
+  if (!rec.id) rec.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const i = LOG.findIndex(l => l.id === rec.id);
+  if (i >= 0) LOG[i] = rec; else LOG.push(rec);
+  saveLog(); renderLog();
+  toast(`Saved #${rec.num}`);
+  newEntry();
+});
+$("#m-copy-all").addEventListener("click", async () => {
+  const sorted = copyableLog();
+  if (!sorted.length){ toast("No entries to copy yet. The example is never copied."); return; }
+  const blocks = sorted.map(entryRows);
+  if ($("#m-include-header").checked) blocks.unshift(headerRows());
+  const rows = blocksToRows(blocks);
+  const ok = await copyRich(rowsToClipboardHTML(rows), rowsToTSV(rows));
+  toast(ok ? `Copied ${sorted.length} ${sorted.length === 1 ? "entry" : "entries"}` : "Copy was blocked by this browser.");
+});
+function newEntry(){
+  E = { example:false, id:null, num: nextNum(), company:"", position:"", link:"", managers:[blankMgr()], candidates:[""] };
+  prefillPositionFromRig(true);
+  saveE(); renderEntryForm();
+}
+$("#m-new").addEventListener("click", () => { newEntry(); $("#m-company").focus(); });
+
+function prefillPositionFromRig(force){
+  if ((force || !E.position) && !E.example && B.role && B.source && B.source !== "example"){
+    E.position = B.role; saveE();
+    if (!force){ $("#m-position").value = E.position; renderSheet(); }
+  }
+}
+function renderEntryForm(){ renderTopFields(); renderMgrs(); renderCands(); renderSheet(); }
+
+/* ---------- Clipboard helpers ---------- */
+function selectNode(node){
+  const r = document.createRange(); r.selectNodeContents(node);
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+}
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand("copy"); } catch(_){}
+    ta.remove(); return ok;
+  }
+}
+async function copyRich(html, text){
+  try {
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+      await navigator.clipboard.write([new ClipboardItem({
+        "text/html": new Blob([html], { type:"text/html" }),
+        "text/plain": new Blob([text], { type:"text/plain" })
+      })]);
+      return true;
+    }
+  } catch(e){}
+  // Fallback: put the styled table in the selection and use the legacy copy command
+  const div = document.createElement("div");
+  div.contentEditable = "true"; div.style.cssText = "position:fixed;left:-9999px;top:0;background:#fff;color:#000";
+  div.innerHTML = html; document.body.appendChild(div);
+  selectNode(div); let ok = false; try { ok = document.execCommand("copy"); } catch(_){}
+  getSelection().removeAllRanges(); div.remove();
+  return ok;
+}
+
+/* ---------- Boot ---------- */
+syncInputsFromB(); renderGroups(); renderBooleanOut();
+$("#m-include-header").checked = !!store.get("md.header", false);
+if (!E.num) E.num = nextNum();
+renderEntryForm(); renderLog();
+const startView = location.hash === "#middleton" ? "middleton" : location.hash === "#boolean" ? "boolean" : store.get("md.view", "boolean");
+showView(startView);
+
+if (window.claude && typeof window.claude.use === "function"){
+  window.claude.use("sample").then(fn => { sampleFn = fn || null; }).catch(() => { sampleFn = null; });
+}
+})();
+</script>
