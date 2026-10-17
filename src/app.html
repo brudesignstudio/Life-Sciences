@@ -145,6 +145,8 @@ a.btn.primary{color:var(--accent-ink)}
 .mgr-h{display:flex;align-items:center;margin-bottom:10px}
 .mgr-h strong{font-size:13px;margin-right:auto}
 .mgrs{display:grid;gap:12px}
+.terms-field.bad .terms-box input{outline:2px solid var(--not);outline-offset:2px}
+.terms-field{justify-items:center;text-align:center}
 .num-row{display:flex;gap:20px;align-items:start}
 .terms-box{display:flex;align-items:center;height:40px}
 .terms-box input{accent-color:var(--accent);width:20px;height:20px;margin:0;cursor:pointer}
@@ -234,8 +236,6 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 .bullets li{display:flex;gap:10px;align-items:center}
 .bullets li::before{content:"";width:7px;height:7px;background:var(--accent);flex:none;transform:rotate(45deg)}
 .bullets input{flex:1}
-.wc{font-family:var(--f-mono);font-size:11px;color:var(--muted);min-width:30px;text-align:right;flex:none;font-variant-numeric:tabular-nums}
-.wc.over{color:var(--not);font-weight:600}
 .sticky > .panel + .panel{margin-top:24px}
 .alt-row{padding-top:12px;border-top:1px dashed var(--line)}
 .empty-note{font-size:13px;color:var(--muted)}
@@ -304,7 +304,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
           </div>
 
           <div class="step">
-            <div class="step-h"><h2>Get the Boolean string</h2><small>Free, no sign-in</small></div>
+            <div class="step-h"><h2>Get the Boolean string</h2></div>
             <p class="lede">Copies your RIG, the job description and your format rules as one prompt and opens a new tab. Paste it there with ⌘V / Ctrl+V and send.</p>
             <div class="row">
               <a class="btn primary big" id="g-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT ↗</a>
@@ -456,8 +456,13 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
                   <label for="m-num">Entry #</label>
                   <input type="number" id="m-num" min="1" inputmode="numeric">
                 </div>
+                <div class="field terms-field" id="m-bullhorn-field">
+                  <label for="m-bullhorn">Bullhorn Checked</label>
+                  <span class="terms-box"><input type="checkbox" id="m-bullhorn" aria-describedby="m-bullhorn-err"></span>
+                  <span class="err" id="m-bullhorn-err" hidden>Required before saving.</span>
+                </div>
                 <div class="field terms-field">
-                  <label for="m-terms">Terms?</label>
+                  <label for="m-terms">Terms</label>
                   <span class="terms-box"><input type="checkbox" id="m-terms"></span>
                 </div>
               </div>
@@ -854,7 +859,7 @@ const EXAMPLE_E = {
 };
 let LOG = store.get("md.log", []);
 const storedE = store.get("md.entry", null);
-let E = storedE && !storedE.example ? storedE : { example:false, id:null, num: nextNum(), terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
+let E = storedE && !storedE.example ? storedE : { example:false, id:null, num: nextNum(), bullhorn:false, terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
 if (!E.managers?.length) E.managers = [blankMgr()];
 if (!E.candidates) E.candidates = [];
 
@@ -903,13 +908,15 @@ function normUrl(v){
 const isEmail = v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function renderTopFields(){
-  $("#m-num").value = E.num; $("#m-terms").checked = !!E.terms; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
+  $("#m-num").value = E.num; $("#m-bullhorn").checked = !!E.bullhorn; showBullhornError(false); $("#m-terms").checked = !!E.terms; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
   $("#m-example-badge").hidden = !E.example;
 }
 ["num","company","position","link"].forEach(k => {
   const el = $("#m-" + k);
   el.addEventListener("input", () => { E[k] = el.value; markEdited(); saveE(); updateCopyState(); });
 });
+function showBullhornError(on){ $("#m-bullhorn-field").classList.toggle("bad", on); $("#m-bullhorn-err").hidden = !on; }
+$("#m-bullhorn").addEventListener("change", e => { E.bullhorn = e.target.checked; if (E.bullhorn) showBullhornError(false); markEdited(); saveE(); });
 $("#m-terms").addEventListener("change", e => { E.terms = e.target.checked; markEdited(); saveE(); });
 $("#m-link").addEventListener("blur", e => { E.link = normUrl(e.target.value); e.target.value = E.link; saveE(); updateCopyState(); });
 
@@ -1019,7 +1026,7 @@ function renderLog(){
   const sorted = [...LOG].sort((a, b) => (Number(a.num) || 0) - (Number(b.num) || 0));
   host.innerHTML = `<ul class="log-list">${sorted.map(x => {
     const c = (x.candidates || []).filter(s => String(s).trim());
-    const exTag = (x.terms ? ` <span class="badge ok">Terms</span>` : "") + (isExampleEntry(x) ? ` <span class="badge">Example, not copied</span>` : "");
+    const exTag = (x.bullhorn ? ` <span class="badge ok">Bullhorn</span>` : "") + (x.terms ? ` <span class="badge ok">Terms</span>` : "") + (isExampleEntry(x) ? ` <span class="badge">Example, not copied</span>` : "");
     return `<li><span class="n">#${esc(x.num)}</span><span class="t"><b>${esc(x.company || "Untitled company")}${exTag}</b><span>${esc(x.position || "No position")}</span>${c.length ? `<div class="cl">${c.map(n => `<button type="button" class="cand-chip" data-rm-cand="${esc(x.id)}" data-name="${esc(n)}" title="Remove ${esc(n)} from #${esc(x.num)}" aria-label="Remove ${esc(n)} from entry ${esc(x.num)}">${esc(n)}</button>`).join("")}</div>` : ""}</span>
       <span class="row"><button type="button" class="btn ghost" data-copy="${esc(x.id)}">Copy</button><button type="button" class="btn ghost" data-edit="${esc(x.id)}">Edit</button><button type="button" class="btn ghost" data-del="${esc(x.id)}">Delete</button></span></li>`;
   }).join("")}</ul>`;
@@ -1066,6 +1073,7 @@ $("#m-form").addEventListener("submit", e => {
   e.preventDefault();
   if (isExampleEntry(E)){ toast("That's the example entry. Fill in your own to save it."); return; }
   if (!E.company.trim() && !E.position.trim()){ toast("Add a company or position first"); $("#m-company").focus(); return; }
+  if (!E.bullhorn){ showBullhornError(true); toast("Check Bullhorn before saving"); $("#m-bullhorn").focus(); return; }
   const rec = structuredClone(E); delete rec.example;
   rec.link = normUrl(rec.link);
   if (!rec.id) rec.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -1084,7 +1092,7 @@ $("#m-copy-all").addEventListener("click", async () => {
   toast(ok ? `Copied ${sorted.length} ${sorted.length === 1 ? "entry" : "entries"}` : "Copy was blocked by this browser.");
 });
 function newEntry(){
-  E = { example:false, id:null, num: nextNum(), terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
+  E = { example:false, id:null, num: nextNum(), bullhorn:false, terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
   prefillPositionFromRig(true);
   saveE(); renderEntryForm();
 }
@@ -1418,8 +1426,7 @@ function renderScore(){
 function renderBullets(){
   const host = $("#x-bullets");
   host.innerHTML = M.bullets.map((b, i) => {
-    const n = wordCount(b);
-    return `<li><label class="sr" for="xb${i}">Bullet ${i + 1}</label><input type="text" id="xb${i}" data-bi="${i}" value="${esc(b)}" placeholder="Bullet ${i + 1}" autocomplete="off"><span class="wc${n > 8 ? " over" : ""}" id="xbw${i}">${n}/8</span></li>`;
+    return `<li><label class="sr" for="xb${i}">Bullet ${i + 1}</label><input type="text" id="xb${i}" data-bi="${i}" value="${esc(b)}" placeholder="Bullet ${i + 1}" autocomplete="off"></li>`;
   }).join("");
   const src = $("#x-bsource");
   const labels = { draft:["Drafted from resume","badge"], chatgpt:["Polished","badge ok"], edited:["Edited","badge ok"] };
@@ -1464,8 +1471,6 @@ $("#x-strip").addEventListener("change", e => { M.strip = e.target.checked; save
 $("#x-bullets").addEventListener("input", e => {
   const inp = e.target.closest("[data-bi]"); if (!inp) return;
   const i = Number(inp.dataset.bi); M.bullets[i] = inp.value; M.bsource = "edited"; M.example = false;
-  const n = wordCount(inp.value), wc = document.getElementById("xbw" + i);
-  wc.textContent = n + "/8"; wc.classList.toggle("over", n > 8);
   const src = $("#x-bsource"); src.hidden = false; src.textContent = "Edited"; src.className = "badge ok";
   $("#x-copy-bullets").disabled = !M.bullets.some(b => b.trim());
   saveM();
@@ -1477,9 +1482,8 @@ $("#x-redraft").addEventListener("click", () => {
 $("#x-copy-bullets").addEventListener("click", async () => {
   const lines = M.bullets.map(b => b.trim()).filter(Boolean);
   if (!lines.length) return;
-  const long = lines.filter(b => wordCount(b) > 8).length;
   const ok = await copyText(lines.map(b => "\u2022 " + b).join("\n"));
-  toast(!ok ? "Copy was blocked by this browser." : long ? `Copied. ${long} bullet${long > 1 ? "s are" : " is"} over 8 words.` : "Bullets copied");
+  toast(ok ? "Bullets copied" : "Copy was blocked by this browser.");
 });
 $("#x-clear").addEventListener("click", () => {
   M = blankMatch(); saveM(); renderMatch(); $("#x-answer").value = ""; $("#x-status").textContent = ""; xResume.focus();
@@ -1574,8 +1578,7 @@ function parseBullets(raw){
 function applyBullets(list, source, statusEl){
   if (!list.length){ statusEl.textContent = "Couldn't find bullets in that text. Copy just the bullet list and paste again."; return false; }
   M.bullets = [...list, "", "", "", "", ""].slice(0, 5); M.bsource = source; M.example = false; saveM(); renderBullets();
-  const long = list.filter(b => wordCount(b) > 8).length;
-  statusEl.textContent = `${list.length} bullet${list.length > 1 ? "s" : ""} added on the right.` + (long ? ` ${long} ${long > 1 ? "are" : "is"} over 8 words; trim ${long > 1 ? "them" : "it"} there.` : "");
+  statusEl.textContent = `${list.length} bullet${list.length > 1 ? "s" : ""} added on the right.`;
   return true;
 }
 function useBulletAnswer(){
