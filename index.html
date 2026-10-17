@@ -99,7 +99,8 @@ button,input,textarea,select{font:inherit;color:inherit}
 .rig-letter{font-family:var(--f-display);font-stretch:125%;font-weight:800;color:var(--accent);margin-right:2px}
 
 .field{display:grid;gap:5px;min-width:0}
-.field label{font-size:13px;font-weight:600}
+.field label,.field .lbl{font-size:13px;font-weight:600}
+.field .opt{font-weight:500}
 .field label .q{font-family:var(--f-mono);color:var(--muted);font-weight:500;margin-right:4px}
 .field .hint{font-size:12px;color:var(--muted)}
 input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],textarea{
@@ -175,6 +176,20 @@ a.btn.primary{color:var(--accent-ink)}
 .mgrs{display:grid;gap:12px}
 .terms-field.bad .terms-box input{outline:2px solid var(--not);outline-offset:2px}
 .terms-field{justify-items:center;text-align:center}
+.notes-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px;align-items:start}
+.notes-form .full{grid-column:1/-1}
+@media (max-width:620px){.notes-form{grid-template-columns:minmax(0,1fr)}}
+.notes-form textarea{min-height:96px;font-size:14px}
+.notes-form .detail{margin-top:8px}
+.notes-foot{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+select{width:100%;background:var(--field);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;min-width:0;cursor:pointer}
+select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.opts{display:flex;gap:22px;flex-wrap:wrap;min-height:40px;align-items:center}
+.opt{display:inline-flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.opt input{accent-color:var(--accent);width:18px;height:18px;margin:0;cursor:pointer}
+.iv-list{display:grid;gap:12px;margin-top:12px}
+.iv-list .qs .full{grid-column:1/-1}
+.notes-empty{grid-column:1/-1;border:1px dashed var(--line-strong);border-radius:8px;padding:18px;font-size:14px;color:var(--muted)}
 .num-row{display:flex;gap:20px;align-items:start}
 .terms-box{display:flex;align-items:center;height:40px}
 .terms-box input{accent-color:var(--accent);width:20px;height:20px;margin:0;cursor:pointer}
@@ -288,6 +303,8 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
       <button class="tab" role="tab" id="tab-middleton" aria-controls="view-middleton" aria-selected="true" data-view="middleton">Middleton Method</button>
       <button class="tab" role="tab" id="tab-boolean" aria-controls="view-boolean" aria-selected="false" data-view="boolean">RIG Boolean</button>
       <button class="tab" role="tab" id="tab-match" aria-controls="view-match" aria-selected="false" data-view="match">Candidate Match</button>
+      <button class="tab" role="tab" id="tab-notes" aria-controls="view-notes" aria-selected="false" data-view="notes">Candidate Notes</button>
+      <button class="tab" role="tab" id="tab-spec" aria-controls="view-spec" aria-selected="false" data-view="spec">Job Spec</button>
     </nav>
   </div>
 </header>
@@ -539,6 +556,49 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
       </div>
     </div>
   </section>
+  <!-- ============ CANDIDATE NOTES ============ -->
+  <section id="view-notes" role="tabpanel" aria-labelledby="tab-notes" hidden>
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h1>Candidate Notes</h1>
+          <p>Take notes during the candidate call, then copy them into the CRM notes.</p>
+        </div>
+      </div>
+      <div class="bench single">
+        <div class="panel">
+          <div class="notes-form" id="notes-form"></div>
+          <div class="notes-foot row">
+            <button type="button" class="btn primary big" data-copy-notes="notes">Copy notes</button>
+            <span class="grow"></span>
+            <button type="button" class="btn ghost" data-clear-notes="notes">Clear notes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ JOB SPEC ============ -->
+  <section id="view-spec" role="tabpanel" aria-labelledby="tab-spec" hidden>
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h1>Job Spec</h1>
+          <p>Take notes on the role, then copy them into the CRM notes.</p>
+        </div>
+      </div>
+      <div class="bench single">
+        <div class="panel">
+          <div class="notes-form" id="spec-form"></div>
+          <div class="notes-foot row">
+            <button type="button" class="btn primary big" data-copy-notes="spec">Copy notes</button>
+            <span class="grow"></span>
+            <button type="button" class="btn ghost" data-clear-notes="spec">Clear notes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <dialog class="pick" id="x-pick" aria-labelledby="x-pick-h">
@@ -573,6 +633,8 @@ function showView(name){
   $("#view-boolean").hidden = name !== "boolean";
   $("#view-match").hidden = name !== "match";
   $("#view-middleton").hidden = name !== "middleton";
+  $("#view-notes").hidden = name !== "notes";
+  $("#view-spec").hidden = name !== "spec";
   if (name === "match") syncMatchJd();
   store.set("md.view", name);
   if (name === "middleton") prefillPositionFromRig();
@@ -1653,6 +1715,153 @@ $("#x-pick-list").addEventListener("click", e => {
   toast(`${name} added to #${x.num} \u00B7 ${x.company || x.position || "entry"}`);
 });
 
+/* =========================================================
+   CANDIDATE NOTES + JOB SPEC
+   Separate from the other tabs. Each page is a list of questions;
+   Copy notes turns the answered ones into plain text for the CRM.
+   ========================================================= */
+const IV_FIELDS = [
+  { id:"who", q:"Who have you interviewed with", type:"short" },
+  { id:"when", q:"When did you interview there", type:"short" },
+  { id:"stage", q:"Stage", type:"short" },
+  { id:"via", q:"Agency or direct", type:"checks", options:["Agency", "Direct"] }
+];
+const NOTE_PAGES = {
+  notes: { key:"md.cnotes", host:"#notes-form", fields:[
+    { id:"why", q:"What has you looking for a new job", type:"long" },
+    { id:"want", q:"What are you looking for in a new job", type:"long" },
+    { id:"live", q:"Where do you currently live", type:"short" },
+    { id:"relocate", q:"Willing to relocate", type:"select", options:["Yes", "No", "Potentially"] },
+    { id:"commute", q:"What is your current commute", type:"short" },
+    { id:"commuteWant", q:"Desired commute", type:"short" },
+    { id:"salary", q:"What is your current salary", type:"short" },
+    { id:"salaryWant", q:"Salary expectation", type:"short" },
+    { id:"applying", q:"Where are you applying", type:"long" },
+    { id:"interviewing", q:"Have you been interviewing", type:"yesno", group:{ id:"interviews", label:"Interview", fields:IV_FIELDS } },
+    { id:"referrals", q:"Referrals", type:"long" },
+    { id:"managers", q:"Managers/ Past or present", type:"long" },
+    { id:"vacations", q:"Vacations or Equity vesting period", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"interviewSoon", q:"How soon can they interview", type:"short" },
+    { id:"auth", q:"Work authorization", type:"short" },
+    { id:"other", q:"Other notes", type:"long" }
+  ]},
+  // Questions for this page come later; it already copies and clears like Candidate Notes
+  spec: { key:"md.jspec", host:"#spec-form", fields:[] }
+};
+const NOTES = {};
+for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
+const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
+const blankIv = () => ({ who:"", when:"", stage:"", via:[] });
+const isWide = f => f.type === "long" || f.type === "yesno";
+
+function noteControl(page, f, val, path){
+  const id = `${page}-${path}`;
+  const data = `data-path="${esc(path)}"`;
+  if (f.type === "long") return `<textarea id="${id}" ${data}>${esc(val || "")}</textarea>`;
+  if (f.type === "short") return `<input type="text" id="${id}" ${data} value="${esc(val || "")}" autocomplete="off">`;
+  if (f.type === "select") return `<select id="${id}" ${data}><option value="">Select</option>${f.options.map(o => `<option${val === o ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  const opts = f.type === "yesno" ? ["Yes", "No"] : f.options;
+  const on = o => f.type === "yesno" ? val === o : (val || []).includes(o);
+  return `<div class="opts" role="group" aria-labelledby="${id}-l">${opts.map(o => `<label class="opt"><input type="checkbox" ${data} data-opt="${esc(o)}"${on(o) ? " checked" : ""}> ${esc(o)}</label>`).join("")}</div>`;
+}
+function noteLabel(page, f, path){
+  const id = `${page}-${path}`;
+  return f.type === "yesno" || f.type === "checks" ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
+}
+function renderNotes(page){
+  const P = NOTE_PAGES[page], N = NOTES[page], host = $(P.host);
+  if (!P.fields.length){ host.innerHTML = `<div class="notes-empty">No questions here yet. They'll be added soon.</div>`; return; }
+  host.innerHTML = P.fields.map(f => {
+    let html = `<div class="field${isWide(f) ? " full" : ""}">${noteLabel(page, f, f.id)}${noteControl(page, f, N[f.id], f.id)}`;
+    if (f.detail && N[f.id] === f.detail.when){
+      const dp = f.id + "Detail";
+      html += `<div class="detail"><label class="sr" for="${page}-${dp}">${esc(f.q)}: ${esc(f.detail.label)}</label><input type="text" id="${page}-${dp}" data-path="${dp}" value="${esc(N[dp] || "")}" placeholder="${esc(f.detail.label)}" autocomplete="off"></div>`;
+    }
+    if (f.group && N[f.id] === "Yes"){
+      const g = f.group, list = N[g.id] = N[g.id]?.length ? N[g.id] : [blankIv()];
+      html += `<div class="iv-list">${list.map((iv, i) => `
+        <fieldset class="mgr" style="margin:0">
+          <div class="mgr-h"><strong>${esc(g.label)} ${i + 1}</strong>${list.length > 1 ? `<button type="button" class="btn ghost" data-rm-group="${g.id}" data-gi="${i}">Remove</button>` : ""}</div>
+          <div class="qs">${g.fields.map(gf => `<div class="field${gf.type === "checks" ? " full" : ""}">${noteLabel(page, gf, `${g.id}.${i}.${gf.id}`)}${noteControl(page, gf, iv[gf.id], `${g.id}.${i}.${gf.id}`)}</div>`).join("")}</div>
+        </fieldset>`).join("")}</div>
+        <div style="margin-top:10px"><button type="button" class="btn" data-add-group="${g.id}">+ Add another interview</button></div>`;
+    }
+    return html + `</div>`;
+  }).join("");
+}
+function setNote(page, path, v){
+  const N = NOTES[page], parts = path.split(".");
+  if (parts.length === 1) N[path] = v; else N[parts[0]][Number(parts[1])][parts[2]] = v;
+}
+function getNote(page, path){
+  const N = NOTES[page], parts = path.split(".");
+  return parts.length === 1 ? N[path] : N[parts[0]][Number(parts[1])][parts[2]];
+}
+Object.keys(NOTE_PAGES).forEach(page => {
+  const host = $(NOTE_PAGES[page].host);
+  host.addEventListener("input", e => {
+    const el = e.target.closest("[data-path]"); if (!el || el.type === "checkbox" || el.tagName === "SELECT") return;
+    setNote(page, el.dataset.path, el.value); saveNotes(page);
+  });
+  host.addEventListener("change", e => {
+    const el = e.target.closest("[data-path]"); if (!el) return;
+    const path = el.dataset.path;
+    if (el.tagName === "SELECT"){ setNote(page, path, el.value); saveNotes(page); renderNotes(page); document.getElementById(el.id)?.focus(); return; }
+    if (el.type !== "checkbox") return;
+    const f = NOTE_PAGES[page].fields.find(x => x.id === path);
+    if (f && f.type === "yesno"){
+      // Yes and No work as a pair: ticking one clears the other
+      setNote(page, path, el.checked ? el.dataset.opt : "");
+      saveNotes(page); renderNotes(page);
+      host.querySelector(`[data-path="${path}"][data-opt="${el.dataset.opt}"]`)?.focus();
+      return;
+    }
+    const cur = new Set(getNote(page, path) || []);
+    el.checked ? cur.add(el.dataset.opt) : cur.delete(el.dataset.opt);
+    setNote(page, path, [...cur]); saveNotes(page);
+  });
+  host.addEventListener("click", e => {
+    const add = e.target.closest("[data-add-group]"), rm = e.target.closest("[data-rm-group]");
+    const N = NOTES[page];
+    if (add){
+      const g = add.dataset.addGroup; N[g].push(blankIv()); saveNotes(page); renderNotes(page);
+      document.getElementById(`${page}-${g}.${N[g].length - 1}.who`)?.focus();
+    }
+    if (rm){ N[rm.dataset.rmGroup].splice(Number(rm.dataset.gi), 1); saveNotes(page); renderNotes(page); }
+  });
+});
+
+function noteValue(f, v){ return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim(); }
+function noteLine(q, v){ return v.includes("\n") ? `${q}:\n${v}` : `${q}: ${v}`; }
+function notesText(page){
+  const P = NOTE_PAGES[page], N = NOTES[page], out = [];
+  for (const f of P.fields){
+    const v = noteValue(f, N[f.id]);
+    if (!v) continue;
+    let block = noteLine(f.q, v);
+    if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) block = noteLine(f.q, `${v}, ${d}`); }
+    if (f.group && v === "Yes"){
+      (N[f.group.id] || []).forEach((iv, i) => {
+        const lines = f.group.fields.map(gf => [gf.q, noteValue(gf, iv[gf.id])]).filter(([, x]) => x).map(([q, x]) => noteLine(q, x));
+        if (lines.length) block += `\n\n${f.group.label} ${i + 1}\n` + lines.join("\n");
+      });
+    }
+    out.push(block);
+  }
+  return out.join("\n\n");
+}
+document.querySelectorAll("[data-copy-notes]").forEach(b => b.addEventListener("click", async () => {
+  const text = notesText(b.dataset.copyNotes);
+  if (!text){ toast("Nothing to copy yet"); return; }
+  const ok = await copyText(text);
+  toast(ok ? "Notes copied. Paste them into the CRM." : "Copy was blocked by this browser.");
+}));
+document.querySelectorAll("[data-clear-notes]").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.armed !== "1"){ b.dataset.armed = "1"; b.textContent = "Confirm clear"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "Clear notes"; }, 3000); return; }
+  b.dataset.armed = ""; b.textContent = "Clear notes";
+  const page = b.dataset.clearNotes; NOTES[page] = {}; saveNotes(page); renderNotes(page); toast("Notes cleared");
+}));
+
 /* ---------- Clipboard helpers ---------- */
 function selectNode(node){
   const r = document.createRange(); r.selectNodeContents(node);
@@ -1691,7 +1900,8 @@ syncInputsFromB(); updateCopyBtn();
 if (!E.num) E.num = nextNum();
 renderEntryForm(); renderLog();
 renderMatch();
-const hashView = { "#boolean":"boolean", "#match":"match", "#middleton":"middleton" }[location.hash];
+renderNotes("notes"); renderNotes("spec");
+const hashView = { "#boolean":"boolean", "#match":"match", "#middleton":"middleton", "#notes":"notes", "#spec":"spec" }[location.hash];
 const startView = hashView || store.get("md.view", "middleton");
 showView(startView);
 
