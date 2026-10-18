@@ -1728,6 +1728,7 @@ const IV_FIELDS = [
 ];
 const NOTE_PAGES = {
   notes: { key:"md.cnotes", host:"#notes-form", fields:[
+    { id:"name", q:"Candidate name", type:"short", wide:true },
     { id:"why", q:"What has you looking for a new job", type:"long" },
     { id:"want", q:"What are you looking for in a new job", type:"long" },
     { id:"live", q:"Where do you currently live", type:"short" },
@@ -1745,20 +1746,26 @@ const NOTE_PAGES = {
     { id:"auth", q:"Work authorization", type:"short" },
     { id:"other", q:"Other notes", type:"long" }
   ]},
-  // Questions for this page come later; it already copies and clears like Candidate Notes
-  spec: { key:"md.jspec", host:"#spec-form", fields:[] }
+  // More questions for this page come later
+  spec: { key:"md.jspec", host:"#spec-form", fields:[
+    { id:"company", q:"Company name", type:"short" },
+    { id:"manager", q:"Hiring manager name", type:"short" },
+    { id:"phone", q:"Hiring manager phone", type:"short", input:"tel", fmt:"phone" },
+    { id:"email", q:"Hiring manager email", type:"short", input:"email" },
+    { id:"link", q:"Job description link", type:"short", input:"url", fmt:"url", wide:true }
+  ]}
 };
 const NOTES = {};
 for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
 const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
 const blankIv = () => ({ who:"", when:"", stage:"", via:[] });
-const isWide = f => f.type === "long" || f.type === "yesno";
+const isWide = f => f.wide || f.type === "long" || f.type === "yesno";
 
 function noteControl(page, f, val, path){
   const id = `${page}-${path}`;
   const data = `data-path="${esc(path)}"`;
   if (f.type === "long") return `<textarea id="${id}" ${data}>${esc(val || "")}</textarea>`;
-  if (f.type === "short") return `<input type="text" id="${id}" ${data} value="${esc(val || "")}" autocomplete="off">`;
+  if (f.type === "short") return `<input type="${f.input || "text"}" id="${id}" ${data} value="${esc(val || "")}" autocomplete="off">`;
   if (f.type === "select") return `<select id="${id}" ${data}><option value="">Select</option>${f.options.map(o => `<option${val === o ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
   const opts = f.type === "yesno" ? ["Yes", "No"] : f.options;
   const on = o => f.type === "yesno" ? val === o : (val || []).includes(o);
@@ -1819,6 +1826,13 @@ Object.keys(NOTE_PAGES).forEach(page => {
     const cur = new Set(getNote(page, path) || []);
     el.checked ? cur.add(el.dataset.opt) : cur.delete(el.dataset.opt);
     setNote(page, path, [...cur]); saveNotes(page);
+  });
+  host.addEventListener("focusout", e => {
+    const el = e.target.closest("[data-path]"); if (!el) return;
+    const f = NOTE_PAGES[page].fields.find(x => x.id === el.dataset.path);
+    if (!f || !f.fmt) return;
+    el.value = f.fmt === "phone" ? formatPhone(el.value) : normUrl(el.value);
+    setNote(page, f.id, el.value); saveNotes(page);
   });
   host.addEventListener("click", e => {
     const add = e.target.closest("[data-add-group]"), rm = e.target.closest("[data-rm-group]");
