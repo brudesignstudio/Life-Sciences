@@ -1721,29 +1721,33 @@ $("#x-pick-list").addEventListener("click", e => {
    Copy notes turns the answered ones into plain text for the CRM.
    ========================================================= */
 const IV_FIELDS = [
-  { id:"who", q:"Who have you interviewed with", type:"short" },
-  { id:"when", q:"When did you interview there", type:"short" },
-  { id:"stage", q:"Stage", type:"short" },
-  { id:"via", q:"Agency or direct", type:"checks", options:["Agency", "Direct"] }
+  { id:"who", q:"Who have you interviewed with?", type:"short" },
+  { id:"when", q:"When did you interview there?", type:"short" },
+  { id:"stage", q:"Stage?", type:"short" },
+  { id:"via", q:"Agency or direct?", type:"checks", options:["Agency", "Direct"] }
 ];
 const NOTE_PAGES = {
   notes: { key:"md.cnotes", host:"#notes-form", fields:[
     { id:"name", q:"Candidate name", type:"short", wide:true },
-    { id:"why", q:"What has you looking for a new job", type:"long" },
-    { id:"want", q:"What are you looking for in a new job", type:"long" },
-    { id:"live", q:"Where do you currently live", type:"short" },
-    { id:"relocate", q:"Willing to relocate", type:"select", options:["Yes", "No", "Potentially"] },
-    { id:"commute", q:"What is your current commute", type:"short" },
-    { id:"commuteWant", q:"Desired commute", type:"short" },
-    { id:"salary", q:"What is your current salary", type:"short" },
-    { id:"salaryWant", q:"Salary expectation", type:"short" },
-    { id:"applying", q:"Where are you applying", type:"long" },
-    { id:"interviewing", q:"Have you been interviewing", type:"yesno", group:{ id:"interviews", label:"Interview", fields:IV_FIELDS } },
-    { id:"referrals", q:"Referrals", type:"long" },
-    { id:"managers", q:"Managers/ Past or present", type:"long" },
-    { id:"vacations", q:"Vacations or Equity vesting period", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
-    { id:"interviewSoon", q:"How soon can they interview", type:"short" },
-    { id:"auth", q:"Work authorization", type:"short" },
+    { id:"why", q:"What has you looking for a new job?", type:"long" },
+    { id:"want", q:"What are you looking for in a new job?", type:"long" },
+    { id:"live", q:"Where do you currently live?", type:"short" },
+    { id:"relocate", q:"Willing to relocate?", type:"select", options:["Yes", "No", "Potentially"] },
+    { id:"commute", q:"What is your current commute?", type:"short" },
+    { id:"commuteWant", q:"Desired commute?", type:"short" },
+    { id:"salary", q:"What is your current salary?", type:"short" },
+    { id:"salaryWant", q:"Salary expectation?", type:"short" },
+    { id:"applying", q:"Where are you applying?", type:"long" },
+    { id:"interviewing", q:"Have you been interviewing?", type:"yesno", group:{ id:"interviews", label:"Interview", add:"+ Add another interview", fields:IV_FIELDS } },
+    { id:"referrals", q:"Referrals?", type:"long" },
+    { id:"managers", q:"Managers/ Past or present?", type:"group", group:{ id:"managers", label:"Manager", add:"+ Add another manager", fields:[
+      { id:"name", q:"Manager name", type:"short" },
+      { id:"company", q:"Company name", type:"short" },
+      { id:"position", q:"Position interviewing for", type:"short" }
+    ]}},
+    { id:"vacations", q:"Vacations or Equity vesting period?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"interviewSoon", q:"How soon can they interview?", type:"short" },
+    { id:"auth", q:"Work authorization?", type:"short" },
     { id:"other", q:"Other notes", type:"long" }
   ]},
   // More questions for this page come later
@@ -1758,10 +1762,11 @@ const NOTE_PAGES = {
 const NOTES = {};
 for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
 const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
-const blankIv = () => ({ who:"", when:"", stage:"", via:[] });
-const isWide = f => f.wide || f.type === "long" || f.type === "yesno";
+const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : ""]));
+const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group";
 
 function noteControl(page, f, val, path){
+  if (f.type === "group") return "";
   const id = `${page}-${path}`;
   const data = `data-path="${esc(path)}"`;
   if (f.type === "long") return `<textarea id="${id}" ${data}>${esc(val || "")}</textarea>`;
@@ -1773,7 +1778,7 @@ function noteControl(page, f, val, path){
 }
 function noteLabel(page, f, path){
   const id = `${page}-${path}`;
-  return f.type === "yesno" || f.type === "checks" ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
+  return f.type === "yesno" || f.type === "checks" || f.type === "group" ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
 }
 function renderNotes(page){
   const P = NOTE_PAGES[page], N = NOTES[page], host = $(P.host);
@@ -1784,14 +1789,15 @@ function renderNotes(page){
       const dp = f.id + "Detail";
       html += `<div class="detail"><label class="sr" for="${page}-${dp}">${esc(f.q)}: ${esc(f.detail.label)}</label><input type="text" id="${page}-${dp}" data-path="${dp}" value="${esc(N[dp] || "")}" placeholder="${esc(f.detail.label)}" autocomplete="off"></div>`;
     }
-    if (f.group && N[f.id] === "Yes"){
-      const g = f.group, list = N[g.id] = N[g.id]?.length ? N[g.id] : [blankIv()];
+    // Repeating entries: always for a group question, only after Yes for a yes/no one
+    if (f.group && (f.type === "group" || N[f.id] === "Yes")){
+      const g = f.group, list = N[g.id] = Array.isArray(N[g.id]) && N[g.id].length ? N[g.id] : [blankRow(g)];
       html += `<div class="iv-list">${list.map((iv, i) => `
         <fieldset class="mgr" style="margin:0">
           <div class="mgr-h"><strong>${esc(g.label)} ${i + 1}</strong>${list.length > 1 ? `<button type="button" class="btn ghost" data-rm-group="${g.id}" data-gi="${i}">Remove</button>` : ""}</div>
           <div class="qs">${g.fields.map(gf => `<div class="field${gf.type === "checks" ? " full" : ""}">${noteLabel(page, gf, `${g.id}.${i}.${gf.id}`)}${noteControl(page, gf, iv[gf.id], `${g.id}.${i}.${gf.id}`)}</div>`).join("")}</div>
         </fieldset>`).join("")}</div>
-        <div style="margin-top:10px"><button type="button" class="btn" data-add-group="${g.id}">+ Add another interview</button></div>`;
+        <div style="margin-top:10px"><button type="button" class="btn" data-add-group="${g.id}">${esc(g.add)}</button></div>`;
     }
     return html + `</div>`;
   }).join("");
@@ -1838,28 +1844,34 @@ Object.keys(NOTE_PAGES).forEach(page => {
     const add = e.target.closest("[data-add-group]"), rm = e.target.closest("[data-rm-group]");
     const N = NOTES[page];
     if (add){
-      const g = add.dataset.addGroup; N[g].push(blankIv()); saveNotes(page); renderNotes(page);
-      document.getElementById(`${page}-${g}.${N[g].length - 1}.who`)?.focus();
+      const g = NOTE_PAGES[page].fields.find(f => f.group?.id === add.dataset.addGroup).group;
+      N[g.id].push(blankRow(g)); saveNotes(page); renderNotes(page);
+      document.getElementById(`${page}-${g.id}.${N[g.id].length - 1}.${g.fields[0].id}`)?.focus();
     }
     if (rm){ N[rm.dataset.rmGroup].splice(Number(rm.dataset.gi), 1); saveNotes(page); renderNotes(page); }
   });
 });
 
 function noteValue(f, v){ return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim(); }
-function noteLine(q, v){ return v.includes("\n") ? `${q}:\n${v}` : `${q}: ${v}`; }
+// "Question? answer" for questions, "Label: answer" for the rest
+function noteLine(q, v){ const sep = q.endsWith("?") ? "" : ":"; return v.includes("\n") ? `${q}${sep}\n${v}` : `${q}${sep} ${v}`; }
 function notesText(page){
   const P = NOTE_PAGES[page], N = NOTES[page], out = [];
+  const groupLines = (g, list) => (list || []).map((row, i) => {
+    const lines = g.fields.map(gf => [gf.q, noteValue(gf, row[gf.id])]).filter(([, x]) => x).map(([q, x]) => noteLine(q, x));
+    return lines.length ? `${g.label} ${i + 1}\n` + lines.join("\n") : "";
+  }).filter(Boolean);
   for (const f of P.fields){
+    if (f.type === "group"){
+      const rows = groupLines(f.group, N[f.group.id]);
+      if (rows.length) out.push(f.q + "\n\n" + rows.join("\n\n"));
+      continue;
+    }
     const v = noteValue(f, N[f.id]);
     if (!v) continue;
     let block = noteLine(f.q, v);
     if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) block = noteLine(f.q, `${v}, ${d}`); }
-    if (f.group && v === "Yes"){
-      (N[f.group.id] || []).forEach((iv, i) => {
-        const lines = f.group.fields.map(gf => [gf.q, noteValue(gf, iv[gf.id])]).filter(([, x]) => x).map(([q, x]) => noteLine(q, x));
-        if (lines.length) block += `\n\n${f.group.label} ${i + 1}\n` + lines.join("\n");
-      });
-    }
+    if (f.group && v === "Yes") groupLines(f.group, N[f.group.id]).forEach(r => { block += "\n\n" + r; });
     out.push(block);
   }
   return out.join("\n\n");
