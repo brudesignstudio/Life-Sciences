@@ -1786,13 +1786,20 @@ const NOTE_PAGES = {
       { id:"pay", q:"Pay", type:"short" }
     ]}},
     { id:"sendTo", q:"Companies to consider sending the candidate to?", type:"short" },
-    { id:"visa", q:"Visa status?", type:"short" },
+    { id:"workAuth", q:"Work authorization?", type:"select", options:["US Citizen", "Green Card", "VISA"], detail:{ when:"VISA", label:"Visa type" } },
     { id:"start", q:"How soon can they start?", type:"short" },
     { id:"vacations", q:"Any vacations, equity/ bonus payouts to wait for?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
     { id:"notice", q:"How much notice is needed for their current role?", type:"short" },
     { id:"goBack", q:"What companies would they go back to?", type:"short" },
     { id:"vacancies", q:"Vacancies where they are?", type:"short" },
-    { id:"referrals", q:"Referrals?", type:"medium" }
+    { id:"referrals", q:"Referrals?", type:"medium" },
+
+    { type:"section", q:"KYC (Know Your Candidate)" },
+    { id:"hobbies", q:"Hobbies", type:"short" },
+    { id:"family", q:"Family", type:"short" },
+
+    { type:"section", q:"Notes" },
+    { id:"notes", q:"Notes", type:"long", bare:true }
   ]},
   spec: { key:"md.jspec", host:"#spec-form", fields:[
     { id:"company", q:"Company name", type:"short" },
@@ -1822,7 +1829,10 @@ const NOTE_PAGES = {
     { id:"sponsor", q:"Do you sponsor?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
     { id:"dayToDay", q:"What does the candidate's day to day look like?", type:"long" },
     { id:"poach", q:"Any companies you want me to poach from?", type:"medium", wide:true },
-    { id:"companyAbout", q:"How would you best describe the company/ what the company does?", type:"long" }
+    { id:"companyAbout", q:"How would you best describe the company/ what the company does?", type:"long" },
+
+    { type:"section", q:"Notes" },
+    { id:"notes", q:"Notes", type:"long", bare:true }
   ]}
 };
 const NOTES = {};
@@ -1858,7 +1868,8 @@ function renderNotes(page){
   if (!P.fields.length){ host.innerHTML = `<div class="notes-empty">No questions here yet. They'll be added soon.</div>`; return; }
   host.innerHTML = P.fields.map(f => {
     if (f.type === "section") return `<div class="notes-sec"><h2>${esc(f.q)}</h2></div>`;
-    let html = `<div class="field${isWide(f) ? " full" : ""}">${noteLabel(page, f, f.id)}${noteControl(page, f, N[f.id], f.id)}`;
+    // bare: the section heading is the label, so the box shows none and copies as the answer alone
+    let html = `<div class="field${isWide(f) ? " full" : ""}">${f.bare ? `<label class="sr" for="${page}-${f.id}">${esc(f.q)}</label>` : noteLabel(page, f, f.id)}${noteControl(page, f, N[f.id], f.id)}`;
     if (f.detail && N[f.id] === f.detail.when){
       const dp = f.id + "Detail";
       html += `<div class="detail"><label class="sr" for="${page}-${dp}">${esc(f.q)}: ${esc(f.detail.label)}</label><input type="text" id="${page}-${dp}" data-path="${dp}" value="${esc(N[dp] || "")}" placeholder="${esc(f.detail.label)}" autocomplete="off"></div>`;
@@ -1934,7 +1945,7 @@ Object.keys(NOTE_PAGES).forEach(page => {
 
 function noteValue(f, v){ return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim(); }
 /* The answered questions as blocks of lines. A line is { q, v } (question and answer)
-   or { h } (a heading on its own). Blocks are separated by a blank line when copied. */
+   or { h } (a heading on its own) or { a } (an answer whose section heading is its label). Blocks are separated by a blank line when copied. */
 function notesBlocks(page){
   const P = NOTE_PAGES[page], N = NOTES[page], out = [];
   const groupBlocks = (g, list) => (list || []).map((row, i) => {
@@ -1959,7 +1970,7 @@ function notesBlocks(page){
     let v = noteValue(f, N[f.id]);
     if (!v) continue;
     if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) v = `${v}, ${d}`; }
-    push([{ q:f.q, v }]);
+    push([f.bare ? { a:v } : { q:f.q, v }]);
     if (f.group && v === "Yes") groupBlocks(f.group, N[f.group.id]).forEach(r => out.push(r));
   }
   return out;
@@ -1967,12 +1978,13 @@ function notesBlocks(page){
 // "Question? answer" for questions, "Label: answer" for the rest
 const qSep = q => q.endsWith("?") ? "" : ":";
 function blocksText(blocks){
-  return blocks.map(b => b.map(l => l.h != null ? l.h
+  return blocks.map(b => b.map(l => l.h != null ? l.h : l.a != null ? l.a
     : l.v.includes("\n") ? `${l.q}${qSep(l.q)}\n${l.v}` : `${l.q}${qSep(l.q)} ${l.v}`).join("\n")).join("\n\n");
 }
 function blocksHTML(blocks){
   const ans = v => esc(v).replace(/\n/g, "<br>");
   const body = blocks.map(b => b.map(l => l.h != null ? (l.sec ? `<b><u>${esc(l.h)}</u></b>` : `<b>${esc(l.h)}</b>`)
+    : l.a != null ? `<span style="font-weight:normal">${ans(l.a)}</span>`
     : `<b>${esc(l.q + qSep(l.q))}</b>${l.v.includes("\n") ? "<br>" : " "}<span style="font-weight:normal">${ans(l.v)}</span>`).join("<br>")).join("<br><br>");
   return `<meta charset="utf-8"><div>${body}</div>`;
 }
