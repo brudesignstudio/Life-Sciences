@@ -1731,7 +1731,7 @@ $("#x-pick-list").addEventListener("click", e => {
    Separate from the other tabs. Each page is a list of questions;
    Copy notes turns the answered ones into notes for the CRM, questions in bold.
    Answer types: short (one line), medium (a few lines), long, select (+ detail box),
-   yesno, checks, flag (one checkbox), parts (several short boxes side by side),
+   yesno, pick (checkboxes where only one can be ticked), checks, parts (several short boxes side by side),
    group (repeatable entries), section (a heading).
    ========================================================= */
 const NOTE_PAGES = {
@@ -1752,7 +1752,7 @@ const NOTE_PAGES = {
     { id:"otherInterviews", q:"Other interviews", type:"group", group:{ id:"otherIv", label:"Interview", add:"+ Add another interview", fields:[
       { id:"where", q:"Where", type:"short" },
       { id:"stage", q:"Stage", type:"short" },
-      { id:"agency", q:"Agency", type:"flag" },
+      { id:"via", q:"Applied through", type:"pick", options:["Agency", "Direct"] },
       { id:"manager", q:"Manager name", type:"short" },
       { id:"pay", q:"Pay", type:"short" }
     ]}},
@@ -1799,7 +1799,7 @@ const NOTE_PAGES = {
 const NOTES = {};
 for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
 const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
-const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : gf.type === "flag" ? false : ""]));
+const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : ""]));
 const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group" || f.type === "parts" || f.type === "section";
 const partKey = (f, p) => `${f.id}_${p.toLowerCase()}`;
 
@@ -1811,18 +1811,18 @@ function noteControl(page, f, val, path){
   if (f.type === "medium") return `<textarea class="mid" id="${id}" ${data}>${esc(val || "")}</textarea>`;
   if (f.type === "short") return `<input type="${f.input || "text"}" id="${id}" ${data} value="${esc(val || "")}" autocomplete="off">`;
   if (f.type === "select") return `<select id="${id}" ${data}><option value="">Select</option>${f.options.map(o => `<option${val === o ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
-  if (f.type === "flag") return `<div class="opts" role="group" aria-labelledby="${id}-l"><label class="opt"><input type="checkbox" ${data}${val ? " checked" : ""}> Yes</label></div>`;
   if (f.type === "parts") return `<div class="parts" role="group" aria-labelledby="${id}-l">${f.parts.map(p => {
     const k = partKey(f, p);
     return `<div class="field"><label for="${page}-${k}">${esc(p)}</label><input type="text" id="${page}-${k}" data-path="${k}" value="${esc(NOTES[page][k] || "")}" autocomplete="off"></div>`;
   }).join("")}</div>`;
   const opts = f.type === "yesno" ? ["Yes", "No"] : f.options;
-  const on = o => f.type === "yesno" ? val === o : (val || []).includes(o);
+  const one = f.type === "yesno" || f.type === "pick";
+  const on = o => one ? val === o : (val || []).includes(o);
   return `<div class="opts" role="group" aria-labelledby="${id}-l">${opts.map(o => `<label class="opt"><input type="checkbox" ${data} data-opt="${esc(o)}"${on(o) ? " checked" : ""}> ${esc(o)}</label>`).join("")}</div>`;
 }
 function noteLabel(page, f, path){
   const id = `${page}-${path}`;
-  return ["yesno", "checks", "group", "flag", "parts"].includes(f.type) ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
+  return ["yesno", "pick", "checks", "group", "parts"].includes(f.type) ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
 }
 function renderNotes(page){
   const P = NOTE_PAGES[page], N = NOTES[page], host = $(P.host);
@@ -1873,9 +1873,8 @@ Object.keys(NOTE_PAGES).forEach(page => {
     if (el.tagName === "SELECT"){ setNote(page, path, el.value); saveNotes(page); renderNotes(page); document.getElementById(el.id)?.focus(); return; }
     if (el.type !== "checkbox") return;
     const f = fieldAt(page, path);
-    if (f && f.type === "flag"){ setNote(page, path, el.checked); saveNotes(page); return; }
-    if (f && f.type === "yesno"){
-      // Yes and No work as a pair: ticking one clears the other
+    if (f && (f.type === "yesno" || f.type === "pick")){
+      // Only one can be ticked (Yes / No, Agency / Direct): ticking one clears the other
       setNote(page, path, el.checked ? el.dataset.opt : "");
       saveNotes(page); renderNotes(page);
       host.querySelector(`[data-path="${path}"][data-opt="${el.dataset.opt}"]`)?.focus();
@@ -1904,10 +1903,7 @@ Object.keys(NOTE_PAGES).forEach(page => {
   });
 });
 
-function noteValue(f, v){
-  if (f && f.type === "flag") return v ? "Yes" : "";
-  return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim();
-}
+function noteValue(f, v){ return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim(); }
 /* The answered questions as blocks of lines. A line is { q, v } (question and answer)
    or { h } (a heading on its own). Blocks are separated by a blank line when copied. */
 function notesBlocks(page){
