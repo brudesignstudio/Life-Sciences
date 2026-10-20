@@ -179,7 +179,13 @@ a.btn.primary{color:var(--accent-ink)}
 .notes-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px;align-items:start}
 .notes-form .full{grid-column:1/-1}
 @media (max-width:620px){.notes-form{grid-template-columns:minmax(0,1fr)}}
-.notes-form textarea{min-height:96px;font-size:14px}
+.notes-form textarea{min-height:120px;font-size:14px}
+.notes-form textarea.mid{min-height:64px}
+.notes-sec{grid-column:1/-1;margin-top:10px;padding-top:18px;border-top:1px solid var(--line)}
+.notes-sec h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:2px}
+.parts .field label{font-weight:500;color:var(--muted)}
+@media (max-width:620px){.parts{grid-template-columns:minmax(0,1fr)}}
 .notes-form .detail{margin-top:8px}
 .notes-foot{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
 select{width:100%;background:var(--field);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;min-width:0;cursor:pointer}
@@ -275,6 +281,14 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 .kw.hit::before{content:"\2713 ";color:var(--accent);font-weight:700}
 .kw.miss{border-color:var(--line-strong);border-style:dashed;color:var(--muted)}
 .kw.miss::before{content:"\2715 ";font-size:10px}
+.kw-x{background:none;border:0;padding:0 0 0 2px;margin:-3px -4px -3px 2px;width:20px;height:20px;line-height:1;font-size:15px;color:var(--muted);cursor:pointer;border-radius:3px;display:inline-grid;place-items:center}
+.kw-x:hover,.kw-x:focus-visible{color:var(--not);background:rgba(255,255,255,.06);outline:none}
+.kw-off{border-top:1px dashed var(--line);padding-top:12px}
+.kw-off .kw-h{display:flex;align-items:center;gap:10px}
+.kw.gone{font:inherit;font-family:var(--f-mono);font-size:12px;background:none;border:1px solid var(--line);color:var(--muted);text-decoration:line-through;cursor:pointer}
+.kw.gone::after{content:"\21BA";text-decoration:none;display:inline-block;margin-left:2px}
+.kw.gone:hover{color:var(--ink);border-color:var(--line-strong)}
+.linkish{background:none;border:0;padding:0;font:inherit;font-size:11px;letter-spacing:.04em;text-transform:none;color:var(--accent);cursor:pointer;text-decoration:underline}
 .bullets{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .bullets li{display:flex;gap:10px;align-items:center}
 .bullets li::before{content:"";width:7px;height:7px;background:var(--accent);flex:none;transform:rotate(45deg)}
@@ -999,7 +1013,7 @@ function normUrl(v){
 const isEmail = v => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 
 function renderTopFields(){
-  $("#m-num").value = E.num; $("#m-bullhorn").checked = !!E.bullhorn; showBullhornError(false); $("#m-terms").checked = !!E.terms; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
+  $("#m-num").value = E.num; $("#m-num").placeholder = nextNum(); $("#m-bullhorn").checked = !!E.bullhorn; showBullhornError(false); $("#m-terms").checked = !!E.terms; $("#m-company").value = E.company; $("#m-position").value = E.position; $("#m-link").value = E.link;
   $("#m-example-badge").hidden = !E.example;
 }
 ["num","company","position","link"].forEach(k => {
@@ -1055,11 +1069,11 @@ $("#m-add-mgr").addEventListener("click", () => {
 function headerRows(){
   const rows = [[
     { v:"#", center:true }, { v:"Company Name", bold:true, border:true, center:true },
-    { v:"Position/ Link", bold:true, border:true, center:true, span:3 }, { v:"Candidate Name" }
+    { v:"Position/ Link", bold:true, border:true, center:true, span:3 }, { v:"Candidate Name", center:true }
   ]];
   for (let i = 0; i < 3; i++) rows.push([
-    { v:"" }, { v:"Hiring manager Job Title", border:true, center:true }, { v:"Manager Name", border:true, center:true },
-    { v:"Manager Email", border:true, center:true }, { v:"Manager Phone", border:true, center:true }, { v:"" }
+    { v:"", center:true }, { v:"Hiring manager Job Title", border:true, center:true }, { v:"Manager Name", border:true, center:true },
+    { v:"Manager Email", border:true, center:true }, { v:"Manager Phone", border:true, center:true }, { v:"", center:true }
   ]);
   return rows;
 }
@@ -1069,18 +1083,18 @@ function entryRows(e){
   const n = Math.max(3, mgrs.length, cands.length - 1);
   const rows = [[
     { v:e.num, center:true }, { v:e.company, bold:true, border:true, center:true },
-    { v:e.position, bold:true, border:true, center:true, span:3, href:normUrl(e.link) }, { v:cands[0] || "" }
+    { v:e.position, bold:true, border:true, center:true, span:3, href:normUrl(e.link) }, { v:cands[0] || "", center:true }
   ]];
   for (let i = 0; i < n; i++){
     const m = mgrs[i] || blankMgr();
     rows.push([
-      { v: i === 0 && e.terms ? "TERMS" : "", center:true }, { v:m.title, border:true, center:true }, { v:m.name, border:true, center:true },
-      { v:m.email, border:true, center:true }, { v:m.phone, border:true, center:true, text:true }, { v:cands[i + 1] || "" }
+      { v: i === 0 && e.terms ? "TERMS" : "", center:true, bold: i === 0 && !!e.terms }, { v:m.title, border:true, center:true }, { v:m.name, border:true, center:true },
+      { v:m.email, border:true, center:true, href: isEmail(m.email) && m.email.trim() ? "mailto:" + m.email.trim() : "" }, { v:m.phone, border:true, center:true, text:true }, { v:cands[i + 1] || "", center:true }
     ]);
   }
   return rows;
 }
-const BLANK_ROW = [{v:""},{v:""},{v:""},{v:""},{v:""},{v:""}];
+const BLANK_ROW = Array.from({ length:6 }, () => ({ v:"", center:true }));
 function blocksToRows(blocks){
   const rows = [];
   blocks.forEach((b, i) => { if (i) rows.push(BLANK_ROW, BLANK_ROW); rows.push(...b); });
@@ -1092,12 +1106,12 @@ function rowsToClipboardHTML(rows){
   const widths = [40, 190, 150, 210, 140, 160];
   const cols = widths.map(w => `<col width="${w}" style="width:${w}px">`).join("");
   const body = rows.map(r => "<tr>" + r.map(c => {
-    const st = ["font-family:Arial,sans-serif","font-size:10pt","vertical-align:middle","height:21px"];
-    if (c.border) st.push("border:1px solid #000000");
+    const st = ["font-family:'Aptos Narrow',Aptos,Calibri,sans-serif","font-size:11pt","vertical-align:middle","height:21px"];
+    if (c.border) st.push("border:.5pt solid windowtext");
     st.push("text-align:" + (c.center ? "center" : "left"));
-    if (c.bold) st.push("font-weight:bold");
+    st.push("font-weight:" + (c.bold ? "bold" : "normal"));
     if (c.text) st.push("mso-number-format:'\\@'");
-    const inner = c.href && c.v ? `<a href="${esc(c.href)}">${esc(c.v)}</a>` : esc(c.v);
+    const inner = c.href && c.v ? `<a href="${esc(c.href)}" style="font-family:'Aptos Narrow',Aptos,Calibri,sans-serif;font-size:11pt">${esc(c.v)}</a>` : esc(c.v);
     return `<td${c.span ? ` colspan="${c.span}"` : ""} style="${st.join(";")}">${inner}</td>`;
   }).join("") + "</tr>").join("");
   return `<meta charset="utf-8"><table style="border-collapse:collapse">${cols}${body}</table>`;
@@ -1166,6 +1180,7 @@ $("#m-form").addEventListener("submit", e => {
   if (!E.company.trim() && !E.position.trim()){ toast("Add a company or position first"); $("#m-company").focus(); return; }
   if (!E.bullhorn){ showBullhornError(true); toast("Check Bullhorn before saving"); $("#m-bullhorn").focus(); return; }
   const rec = structuredClone(E); delete rec.example;
+  if (!String(rec.num).trim()) rec.num = nextNum();
   rec.link = normUrl(rec.link);
   if (!rec.id) rec.id = "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const i = LOG.findIndex(l => l.id === rec.id);
@@ -1182,12 +1197,13 @@ $("#m-copy-all").addEventListener("click", async () => {
   const ok = await copyRich(rowsToClipboardHTML(rows), rowsToTSV(rows));
   toast(ok ? `Copied ${sorted.length} ${sorted.length === 1 ? "entry" : "entries"}` : "Copy was blocked by this browser.");
 });
-function newEntry(){
-  E = { example:false, id:null, num: nextNum(), bullhorn:false, terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
-  prefillPositionFromRig(true);
+function newEntry(blank){
+  E = { example:false, id:null, num: blank ? "" : nextNum(), bullhorn:false, terms:false, company:"", position:"", link:"", managers:[blankMgr()], candidates:[] };
+  if (!blank) prefillPositionFromRig(true);
   saveE(); renderEntryForm();
 }
-$("#m-new").addEventListener("click", () => { newEntry(); $("#m-company").focus(); });
+// Clear form empties every box, with nothing carried over from the RIG Boolean tab
+$("#m-new").addEventListener("click", () => { newEntry(true); toast("Form cleared"); $("#m-num").focus(); });
 
 function prefillPositionFromRig(force){
   if ((force || !E.position) && !E.example && B.role && B.source && B.source !== "example"){
@@ -1329,8 +1345,20 @@ function jdTerms(jd){
   return kept.slice(0, 40);
 }
 
+/* Keywords removed as irrelevant, remembered per job description (the last 30) */
+const jdKey = jd => { let h = 0; for (const c of nz(jd).replace(/\s+/g, "")) h = (h * 31 + c.charCodeAt(0)) | 0; return "j" + (h >>> 0).toString(36); };
+let KWSKIP = store.get("md.kwskip", {});
+function skippedFor(jd){ return new Set(KWSKIP[jdKey(jd)] || []); }
+function setSkipped(jd, set){
+  const k = jdKey(jd); delete KWSKIP[k];
+  if (set.size) KWSKIP[k] = [...set];
+  const keys = Object.keys(KWSKIP); if (keys.length > 30) keys.slice(0, keys.length - 30).forEach(x => delete KWSKIP[x]);
+  store.set("md.kwskip", KWSKIP);
+}
+
 function scoreMatch(jd, resume){
-  const terms = jdTerms(jd);
+  const skip = skippedFor(jd), all = jdTerms(jd);
+  const terms = all.filter(t => !skip.has(t.key)), removed = all.filter(t => skip.has(t.key));
   const rn = " " + nz(resume) + " ";
   let total = 0, got = 0;
   const tiers = {};
@@ -1340,7 +1368,7 @@ function scoreMatch(jd, resume){
     (tiers[t.tier] = tiers[t.tier] || { hit:0, total:0 }).total++;
     if (t.hit) tiers[t.tier].hit++;
   }
-  return { terms, tiers, score: total ? Math.round(100 * got / total) : null };
+  return { terms, removed, tiers, score: total ? Math.round(100 * got / total) : null };
 }
 
 /* ---------- Draft bullets from the resume's own lines ---------- */
@@ -1500,7 +1528,7 @@ function renderScore(){
     $("#x-score").textContent = s; band.hidden = false; band.className = "pill " + cls; band.textContent = label;
     meter.style.width = s + "%"; meter.style.background = color;
     const hits = r.terms.filter(t => t.hit).length;
-    sub.textContent = `${hits} of ${r.terms.length} job description keywords found on the resume. Required skills count most, then preferred.`;
+    sub.textContent = `${hits} of ${r.terms.length} job description keywords found on the resume. Required skills count most, then preferred. Select \u00D7 on a keyword to leave it out of the score.`;
   }
   const order = ["required","preferred","resp","other"];
   $("#x-tiers").innerHTML = resume.trim() ? order.filter(k => r.tiers[k]).map(k =>
@@ -1509,10 +1537,22 @@ function renderScore(){
   $("#x-keywords").innerHTML = groupOrder.filter(k => r.terms.some(t => t.tier === k)).map(k => {
     const ts = r.terms.filter(t => t.tier === k).sort((a, b) => (b.hit ? 1 : 0) - (a.hit ? 1 : 0));
     return `<div><div class="kw-h">${esc(TIER_LABEL[k])}</div><div class="kws">${ts.map(t =>
-      `<span class="kw ${resume.trim() ? (t.hit ? "hit" : "miss") : "miss"}">${esc(t.display)}</span>`).join("")}</div></div>`;
-  }).join("") || (jd.trim() ? `<p class="empty-note">No keywords found in the job description yet.</p>` : "");
+      `<span class="kw ${resume.trim() ? (t.hit ? "hit" : "miss") : "miss"}">${esc(t.display)}<button type="button" class="kw-x" data-skip="${esc(t.key)}" aria-label="Remove ${esc(t.display)} from the score" title="Not relevant: leave out of the score">\u00D7</button></span>`).join("")}</div></div>`;
+  }).join("") + (r.removed.length ? `<div class="kw-off"><div class="kw-h">Removed from the score<button type="button" class="linkish" data-unskip-all>Restore all</button></div><div class="kws">${r.removed.map(t =>
+      `<button type="button" class="kw gone" data-unskip="${esc(t.key)}" title="Put back in the score">${esc(t.display)}</button>`).join("")}</div></div>` : "")
+    || (jd.trim() ? `<p class="empty-note">No keywords found in the job description yet.</p>` : "");
   return r;
 }
+
+$("#x-keywords").addEventListener("click", e => {
+  const x = e.target.closest("[data-skip]"), un = e.target.closest("[data-unskip]"), all = e.target.closest("[data-unskip-all]");
+  if (!x && !un && !all) return;
+  const jd = jdEl.value, set = skippedFor(jd);
+  if (x){ set.add(x.dataset.skip); toast("Removed from the score"); }
+  if (un) set.delete(un.dataset.unskip);
+  if (all) set.clear();
+  setSkipped(jd, set); refreshAfterResume();
+});
 
 function renderBullets(){
   const host = $("#x-bullets");
@@ -1718,72 +1758,106 @@ $("#x-pick-list").addEventListener("click", e => {
 /* =========================================================
    CANDIDATE NOTES + JOB SPEC
    Separate from the other tabs. Each page is a list of questions;
-   Copy notes turns the answered ones into plain text for the CRM.
+   Copy notes turns the answered ones into notes for the CRM, questions in bold.
+   Answer types: short (one line), medium (a few lines), long, select (+ detail box),
+   yesno, checks, flag (one checkbox), parts (several short boxes side by side),
+   group (repeatable entries), section (a heading).
    ========================================================= */
-const IV_FIELDS = [
-  { id:"who", q:"Who have you interviewed with?", type:"short" },
-  { id:"when", q:"When did you interview there?", type:"short" },
-  { id:"stage", q:"Stage?", type:"short" },
-  { id:"via", q:"Agency or direct?", type:"checks", options:["Agency", "Direct"] }
-];
 const NOTE_PAGES = {
   notes: { key:"md.cnotes", host:"#notes-form", fields:[
-    { id:"name", q:"Candidate name", type:"short", wide:true },
-    { id:"why", q:"What has you looking for a new job?", type:"long" },
-    { id:"want", q:"What are you looking for in a new job?", type:"long" },
-    { id:"live", q:"Where do you currently live?", type:"short" },
-    { id:"relocate", q:"Willing to relocate?", type:"select", options:["Yes", "No", "Potentially"] },
-    { id:"commute", q:"What is your current commute?", type:"short" },
+    { id:"name", q:"Candidate name", type:"short", wide:true, copy:false },
+    { id:"why", q:"Why looking/ how long?", type:"long" },
+    { id:"active", q:"How active?", type:"select", options:["Passive", "Active"] },
+    { id:"nextRole", q:"What are they looking for in their next role?", type:"long" },
+    { id:"currentRole", q:"What do you do at your current role?", type:"long" },
+    { id:"location", q:"Current location?", type:"short" },
+    { id:"relocateTo", q:"Locations open to relocate?", type:"medium" },
+    { id:"targetTitles", q:"Roles/ titles they are targeting?", type:"medium" },
+    { id:"compNow", q:"Compensation now", type:"parts", parts:["Base", "Bonus", "Other"] },
+    { id:"compWant", q:"Expected compensation", type:"parts", parts:["Base", "Bonus", "Other"] },
+    { id:"commute", q:"Current commute?", type:"short" },
     { id:"commuteWant", q:"Desired commute?", type:"short" },
-    { id:"salary", q:"What is your current salary?", type:"short" },
-    { id:"salaryWant", q:"Salary expectation?", type:"short" },
-    { id:"applying", q:"Where are you applying?", type:"long" },
-    { id:"interviewing", q:"Have you been interviewing?", type:"yesno", group:{ id:"interviews", label:"Interview", add:"+ Add another interview", fields:IV_FIELDS } },
-    { id:"referrals", q:"Referrals?", type:"long" },
-    { id:"managers", q:"Managers/ Past or present?", type:"group", group:{ id:"managers", label:"Manager", add:"+ Add another manager", fields:[
-      { id:"name", q:"Manager name", type:"short" },
-      { id:"company", q:"Company name", type:"short" },
-      { id:"position", q:"Manager job title", type:"short" }
+    { id:"keyExp", q:"Key experiences", type:"long" },
+    { id:"otherInterviews", q:"Other interviews", type:"group", group:{ id:"otherIv", label:"Interview", add:"+ Add another interview", fields:[
+      { id:"where", q:"Where", type:"short" },
+      { id:"stage", q:"Stage", type:"short" },
+      { id:"agency", q:"Agency", type:"flag" },
+      { id:"manager", q:"Manager name", type:"short" },
+      { id:"pay", q:"Pay", type:"short" }
     ]}},
-    { id:"vacations", q:"Vacations or Equity vesting period?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
-    { id:"interviewSoon", q:"How soon can they interview?", type:"short" },
-    { id:"auth", q:"Work authorization?", type:"short" },
-    { id:"other", q:"Other notes", type:"long" }
+    { id:"sendTo", q:"Companies to consider sending the candidate to?", type:"short" },
+    { id:"visa", q:"Visa status?", type:"short" },
+    { id:"start", q:"How soon can they start?", type:"short" },
+    { id:"vacations", q:"Any vacations, equity/ bonus payouts to wait for?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"notice", q:"How much notice is needed for their current role?", type:"short" },
+    { id:"goBack", q:"What companies would they go back to?", type:"short" },
+    { id:"vacancies", q:"Vacancies where they are?", type:"short" },
+    { id:"referrals", q:"Referrals?", type:"medium" }
   ]},
-  // More questions for this page come later
   spec: { key:"md.jspec", host:"#spec-form", fields:[
     { id:"company", q:"Company name", type:"short" },
     { id:"manager", q:"Hiring manager name", type:"short" },
     { id:"phone", q:"Hiring manager phone", type:"short", input:"tel", fmt:"phone" },
     { id:"email", q:"Hiring manager email", type:"short", input:"email" },
-    { id:"link", q:"Job description link", type:"short", input:"url", fmt:"url", wide:true }
+    { id:"link", q:"Job description link", type:"short", input:"url", fmt:"url", wide:true },
+
+    { type:"section", q:"High Priority" },
+    { id:"needWhy", q:"Why do they need someone?", type:"long" },
+    { id:"essential", q:"What are the essential skills?", type:"long" },
+    { id:"budget", q:"What is the budget?", type:"short" },
+    { id:"feedback", q:"How long would it take to receive feedback on a resume?", type:"short" },
+    { id:"followUp", q:"When is a good day and time to hop on a follow up call for a check in?", type:"short", wide:true },
+
+    { type:"section", q:"Medium Priority" },
+    { id:"interviewed", q:"How many candidates have you interviewed?", type:"short" },
+    { id:"agencies", q:"How many agencies do you use at a time?", type:"short" },
+    { id:"bonusSkills", q:"Bonus skills", type:"long" },
+    { id:"process", q:"Describe the interview process", type:"long" },
+    { id:"cvToOffer", q:"How much time between CV submission to offer?", type:"short" },
+    { id:"canInterview", q:"When can you interview the candidate?", type:"short" },
+    { id:"missing", q:"What have past candidates been missing?", type:"medium", wide:true },
+
+    { type:"section", q:"Low Priority" },
+    { id:"reportsTo", q:"Who will the candidate report to?", type:"short" },
+    { id:"sponsor", q:"Do you sponsor?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"dayToDay", q:"What does the candidate's day to day look like?", type:"long" },
+    { id:"poach", q:"Any companies you want me to poach from?", type:"medium", wide:true },
+    { id:"companyAbout", q:"How would you best describe the company/ what the company does?", type:"long" }
   ]}
 };
 const NOTES = {};
 for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
 const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
-const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : ""]));
-const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group";
+const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : gf.type === "flag" ? false : ""]));
+const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group" || f.type === "parts" || f.type === "section";
+const partKey = (f, p) => `${f.id}_${p.toLowerCase()}`;
 
 function noteControl(page, f, val, path){
-  if (f.type === "group") return "";
+  if (f.type === "group" || f.type === "section") return "";
   const id = `${page}-${path}`;
   const data = `data-path="${esc(path)}"`;
   if (f.type === "long") return `<textarea id="${id}" ${data}>${esc(val || "")}</textarea>`;
+  if (f.type === "medium") return `<textarea class="mid" id="${id}" ${data}>${esc(val || "")}</textarea>`;
   if (f.type === "short") return `<input type="${f.input || "text"}" id="${id}" ${data} value="${esc(val || "")}" autocomplete="off">`;
   if (f.type === "select") return `<select id="${id}" ${data}><option value="">Select</option>${f.options.map(o => `<option${val === o ? " selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+  if (f.type === "flag") return `<div class="opts" role="group" aria-labelledby="${id}-l"><label class="opt"><input type="checkbox" ${data}${val ? " checked" : ""}> Yes</label></div>`;
+  if (f.type === "parts") return `<div class="parts" role="group" aria-labelledby="${id}-l">${f.parts.map(p => {
+    const k = partKey(f, p);
+    return `<div class="field"><label for="${page}-${k}">${esc(p)}</label><input type="text" id="${page}-${k}" data-path="${k}" value="${esc(NOTES[page][k] || "")}" autocomplete="off"></div>`;
+  }).join("")}</div>`;
   const opts = f.type === "yesno" ? ["Yes", "No"] : f.options;
   const on = o => f.type === "yesno" ? val === o : (val || []).includes(o);
   return `<div class="opts" role="group" aria-labelledby="${id}-l">${opts.map(o => `<label class="opt"><input type="checkbox" ${data} data-opt="${esc(o)}"${on(o) ? " checked" : ""}> ${esc(o)}</label>`).join("")}</div>`;
 }
 function noteLabel(page, f, path){
   const id = `${page}-${path}`;
-  return f.type === "yesno" || f.type === "checks" || f.type === "group" ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
+  return ["yesno", "checks", "group", "flag", "parts"].includes(f.type) ? `<span class="lbl" id="${id}-l">${esc(f.q)}</span>` : `<label for="${id}">${esc(f.q)}</label>`;
 }
 function renderNotes(page){
   const P = NOTE_PAGES[page], N = NOTES[page], host = $(P.host);
   if (!P.fields.length){ host.innerHTML = `<div class="notes-empty">No questions here yet. They'll be added soon.</div>`; return; }
   host.innerHTML = P.fields.map(f => {
+    if (f.type === "section") return `<div class="notes-sec"><h2>${esc(f.q)}</h2></div>`;
     let html = `<div class="field${isWide(f) ? " full" : ""}">${noteLabel(page, f, f.id)}${noteControl(page, f, N[f.id], f.id)}`;
     if (f.detail && N[f.id] === f.detail.when){
       const dp = f.id + "Detail";
@@ -1810,6 +1884,12 @@ function getNote(page, path){
   const N = NOTES[page], parts = path.split(".");
   return parts.length === 1 ? N[path] : N[parts[0]][Number(parts[1])][parts[2]];
 }
+// The question behind a data-path, top level or inside a repeating group
+function fieldAt(page, path){
+  const parts = path.split("."), fields = NOTE_PAGES[page].fields;
+  if (parts.length === 1) return fields.find(x => x.id === path);
+  return fields.find(x => x.group?.id === parts[0])?.group.fields.find(x => x.id === parts[2]);
+}
 Object.keys(NOTE_PAGES).forEach(page => {
   const host = $(NOTE_PAGES[page].host);
   host.addEventListener("input", e => {
@@ -1821,7 +1901,8 @@ Object.keys(NOTE_PAGES).forEach(page => {
     const path = el.dataset.path;
     if (el.tagName === "SELECT"){ setNote(page, path, el.value); saveNotes(page); renderNotes(page); document.getElementById(el.id)?.focus(); return; }
     if (el.type !== "checkbox") return;
-    const f = NOTE_PAGES[page].fields.find(x => x.id === path);
+    const f = fieldAt(page, path);
+    if (f && f.type === "flag"){ setNote(page, path, el.checked); saveNotes(page); return; }
     if (f && f.type === "yesno"){
       // Yes and No work as a pair: ticking one clears the other
       setNote(page, path, el.checked ? el.dataset.opt : "");
@@ -1852,34 +1933,57 @@ Object.keys(NOTE_PAGES).forEach(page => {
   });
 });
 
-function noteValue(f, v){ return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim(); }
-// "Question? answer" for questions, "Label: answer" for the rest
-function noteLine(q, v){ const sep = q.endsWith("?") ? "" : ":"; return v.includes("\n") ? `${q}${sep}\n${v}` : `${q}${sep} ${v}`; }
-function notesText(page){
+function noteValue(f, v){
+  if (f && f.type === "flag") return v ? "Yes" : "";
+  return Array.isArray(v) ? v.join(", ") : String(v ?? "").trim();
+}
+/* The answered questions as blocks of lines. A line is { q, v } (question and answer)
+   or { h } (a heading on its own). Blocks are separated by a blank line when copied. */
+function notesBlocks(page){
   const P = NOTE_PAGES[page], N = NOTES[page], out = [];
-  const groupLines = (g, list) => (list || []).map((row, i) => {
-    const lines = g.fields.map(gf => [gf.q, noteValue(gf, row[gf.id])]).filter(([, x]) => x).map(([q, x]) => noteLine(q, x));
-    return lines.length ? `${g.label} ${i + 1}\n` + lines.join("\n") : "";
+  const groupBlocks = (g, list) => (list || []).map((row, i) => {
+    const lines = g.fields.map(gf => ({ q:gf.q, v:noteValue(gf, row[gf.id]) })).filter(l => l.v);
+    return lines.length ? [{ h:`${g.label} ${i + 1}` }, ...lines] : null;
   }).filter(Boolean);
+  let section = null;
+  const push = block => { if (section){ out.push([{ h:section, sec:true }]); section = null; } out.push(block); };
   for (const f of P.fields){
+    if (f.type === "section"){ section = f.q; continue; }
+    if (f.copy === false) continue;
     if (f.type === "group"){
-      const rows = groupLines(f.group, N[f.group.id]);
-      if (rows.length) out.push(f.q + "\n\n" + rows.join("\n\n"));
+      const rows = groupBlocks(f.group, N[f.group.id]);
+      if (rows.length){ push([{ h:f.q }]); rows.forEach(r => out.push(r)); }
       continue;
     }
-    const v = noteValue(f, N[f.id]);
+    if (f.type === "parts"){
+      const lines = f.parts.map(p => ({ q:p, v:noteValue(null, N[partKey(f, p)]) })).filter(l => l.v);
+      if (lines.length) push([{ h:f.q }, ...lines]);
+      continue;
+    }
+    let v = noteValue(f, N[f.id]);
     if (!v) continue;
-    let block = noteLine(f.q, v);
-    if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) block = noteLine(f.q, `${v}, ${d}`); }
-    if (f.group && v === "Yes") groupLines(f.group, N[f.group.id]).forEach(r => { block += "\n\n" + r; });
-    out.push(block);
+    if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) v = `${v}, ${d}`; }
+    push([{ q:f.q, v }]);
+    if (f.group && v === "Yes") groupBlocks(f.group, N[f.group.id]).forEach(r => out.push(r));
   }
-  return out.join("\n\n");
+  return out;
+}
+// "Question? answer" for questions, "Label: answer" for the rest
+const qSep = q => q.endsWith("?") ? "" : ":";
+function blocksText(blocks){
+  return blocks.map(b => b.map(l => l.h != null ? l.h
+    : l.v.includes("\n") ? `${l.q}${qSep(l.q)}\n${l.v}` : `${l.q}${qSep(l.q)} ${l.v}`).join("\n")).join("\n\n");
+}
+function blocksHTML(blocks){
+  const ans = v => esc(v).replace(/\n/g, "<br>");
+  const body = blocks.map(b => b.map(l => l.h != null ? (l.sec ? `<b><u>${esc(l.h)}</u></b>` : `<b>${esc(l.h)}</b>`)
+    : `<b>${esc(l.q + qSep(l.q))}</b>${l.v.includes("\n") ? "<br>" : " "}<span style="font-weight:normal">${ans(l.v)}</span>`).join("<br>")).join("<br><br>");
+  return `<meta charset="utf-8"><div>${body}</div>`;
 }
 document.querySelectorAll("[data-copy-notes]").forEach(b => b.addEventListener("click", async () => {
-  const text = notesText(b.dataset.copyNotes);
-  if (!text){ toast("Nothing to copy yet"); return; }
-  const ok = await copyText(text);
+  const blocks = notesBlocks(b.dataset.copyNotes);
+  if (!blocks.length){ toast("Nothing to copy yet"); return; }
+  const ok = await copyRich(blocksHTML(blocks), blocksText(blocks));
   toast(ok ? "Notes copied. Paste them into the CRM." : "Copy was blocked by this browser.");
 }));
 document.querySelectorAll("[data-clear-notes]").forEach(b => b.addEventListener("click", () => {
@@ -1923,7 +2027,7 @@ async function copyRich(html, text){
 /* ---------- Boot ---------- */
 document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]').forEach(l => { if (l.parentNode !== document.head) document.head.appendChild(l); });
 syncInputsFromB(); updateCopyBtn();
-if (!E.num) E.num = nextNum();
+if (E.num == null) E.num = nextNum();
 renderEntryForm(); renderLog();
 renderMatch();
 renderNotes("notes"); renderNotes("spec");
