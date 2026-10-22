@@ -176,6 +176,7 @@ a.btn.primary{color:var(--accent-ink)}
 .mgrs{display:grid;gap:12px}
 .terms-field.bad .terms-box input{outline:2px solid var(--not);outline-offset:2px}
 .terms-field{justify-items:center;text-align:center}
+.pick-field{justify-items:center;text-align:center}
 .notes-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px;align-items:start}
 .notes-form .full{grid-column:1/-1}
 @media (max-width:620px){.notes-form{grid-template-columns:minmax(0,1fr)}}
@@ -256,19 +257,10 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 /* Candidate match */
 .check{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);cursor:pointer}
 .check input{accent-color:var(--accent);margin-top:3px;flex:none}
-.score-card{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.score-num{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:68px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.score-num small{font-size:28px;color:var(--muted);margin-left:2px;letter-spacing:0}
-.score-side{display:grid;gap:6px;min-width:0;flex:1}
-.score-side p{margin:0;font-size:13px;color:var(--muted)}
-.pill{justify-self:start;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
-.pill.strong{background:var(--good-soft);color:var(--good)}
-.pill.good{background:var(--accent-soft);color:var(--accent)}
-.pill.partial{background:var(--warn-soft);color:var(--warn)}
-.pill.weak{background:var(--bad-soft);color:var(--not)}
-.meter{height:8px;border-radius:999px;background:var(--line);overflow:hidden;margin:18px 0 14px}
-.meter span{display:block;height:100%;width:0;border-radius:inherit;background:var(--accent);transition:width .45s ease}
-@media (prefers-reduced-motion:reduce){.meter span{transition:none}}
+.match-sub{margin:-4px 0 14px;font-size:13px;color:var(--muted)}
+.fit{border-top:1px solid var(--line);margin-top:18px;padding-top:16px;display:grid;gap:10px}
+.fit h3{margin:0;font-size:14px;font-weight:700}
+.fit .lede{margin:0}
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
 .tier{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
 .tier b{display:block;font-family:var(--f-mono);font-size:17px;font-variant-numeric:tabular-nums}
@@ -364,6 +356,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
           </div>
 
           <div class="step">
+            <div class="step-h"><h2>Company About section</h2><small>Optional</small></div>
+            <div class="field">
+              <label class="sr" for="rig-about">Company About section</label>
+              <textarea id="rig-about" style="min-height:110px" placeholder="Paste the About section from the company's LinkedIn page&#x2026;"></textarea>
+              <span class="hint">Goes into the prompt as context on the company, so the search targets people who fit it.</span>
+            </div>
+          </div>
+
+          <div class="step">
             <div class="step-h"><h2>Get the Boolean string</h2></div>
             <p class="lede">Copies your RIG, the job description and your format rules as one prompt and opens a new tab. Paste it there with &#x2318;V / Ctrl+V and send.</p>
             <div class="row">
@@ -406,7 +407,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
       <div class="head">
         <div>
           <h1>Candidate Match</h1>
-          <p>Paste a resume. It's scored against the job description from the RIG Boolean tab, and you get five proof points to send the client.</p>
+          <p>Paste a resume. It's matched against the job description from the RIG Boolean tab, and you get five proof points to send the client.</p>
         </div>
         <span class="badge" id="x-example-badge">Example candidate, click the resume to start</span>
       </div>
@@ -467,13 +468,18 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
 
         <div class="sticky">
           <div class="panel">
-            <div class="score-card">
-              <div class="score-num" aria-live="polite"><span id="x-score">&#x2013;</span><small>%</small></div>
-              <div class="score-side"><span class="pill" id="x-band" hidden></span><p id="x-score-sub"></p></div>
-            </div>
-            <div class="meter" aria-hidden="true"><span id="x-meter"></span></div>
+            <div class="out-h"><h2>Keyword match</h2></div>
+            <p class="match-sub" id="x-score-sub" aria-live="polite"></p>
             <div class="tiers" id="x-tiers"></div>
             <div class="kw-groups" id="x-keywords"></div>
+            <div class="fit">
+              <div class="step-h"><h3>Fit score</h3><small>Optional</small></div>
+              <p class="lede">Copies the resume and the job description as one prompt and opens a new tab, which scores the fit as a percentage using what it knows about the industry, not just keywords.</p>
+              <div class="row">
+                <a class="btn primary" id="x-fit-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy &amp; score in ChatGPT &#x2197;</a>
+                <button type="button" class="btn ghost" id="x-fit-copy">Copy prompt only</button>
+              </div>
+            </div>
           </div>
 
           <div class="panel">
@@ -528,15 +534,15 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
               </div>
               <div class="field full">
                 <label for="m-company">Company name</label>
-                <input type="text" id="m-company" autocomplete="off" placeholder="ACME Corp">
+                <input type="text" id="m-company" autocomplete="off">
               </div>
               <div class="field">
                 <label for="m-position">Position</label>
-                <input type="text" id="m-position" autocomplete="off" placeholder="Director of Operations">
+                <input type="text" id="m-position" autocomplete="off">
               </div>
               <div class="field" id="m-link-field">
                 <label for="m-link">Link to job description</label>
-                <input type="url" id="m-link" autocomplete="off" placeholder="https://&#x2026;">
+                <input type="url" id="m-link" autocomplete="off">
                 <span class="hint">Becomes a clickable link on the position cell.</span>
               </div>
             </div>
@@ -700,12 +706,12 @@ const EXAMPLE_B = {
 
 // Show the example until there's a real search saved (an untouched example or empty draft gets the current example)
 const storedB = store.get("md.boolean", null);
-const blankB = () => ({ example:false, role:"", industry:"", geo:"", jd:"", groups:{titles:[],skills:[],industry:[],locations:[],exclude:[]},
+const blankB = () => ({ example:false, role:"", industry:"", geo:"", jd:"", about:"", groups:{titles:[],skills:[],industry:[],locations:[],exclude:[]},
         on:{titles:true,skills:true,industry:true,locations:true,exclude:false}, source:"" });
 let B = storedB && !storedB.example ? storedB : blankB();
 { const fresh = blankB(); B.groups = fresh.groups; B.on = fresh.on; B.source = ""; B.raw = ""; }
 
-const roleEl = $("#rig-role"), indEl = $("#rig-industry"), geoEl = $("#rig-geo"), jdEl = $("#rig-jd");
+const roleEl = $("#rig-role"), indEl = $("#rig-industry"), geoEl = $("#rig-geo"), jdEl = $("#rig-jd"), aboutEl = $("#rig-about");
 
 function saveB(){ store.set("md.boolean", B); }
 
@@ -720,17 +726,32 @@ function uniq(arr){
 function orBlock(terms){ return "(" + terms.map(t => `"${t}"`).join(" OR ") + ")"; }
 
 function syncInputsFromB(){
-  roleEl.value = B.role || ""; indEl.value = B.industry || ""; geoEl.value = B.geo || ""; jdEl.value = B.jd || "";
+  roleEl.value = B.role || ""; indEl.value = B.industry || ""; geoEl.value = B.geo || ""; jdEl.value = B.jd || ""; aboutEl.value = B.about || "";
   updateJdCount();
 }
 function updateJdCount(){
   const w = (jdEl.value.trim().match(/\S+/g) || []).length;
   $("#jd-count").textContent = w ? `${w.toLocaleString()} words` : "";
 }
-[roleEl, indEl, geoEl, jdEl].forEach(el => el.addEventListener("input", () => {
-  B.role = roleEl.value; B.industry = indEl.value; B.geo = geoEl.value; B.jd = jdEl.value; B.example = false;
+[roleEl, indEl, geoEl, jdEl, aboutEl].forEach(el => el.addEventListener("input", () => {
+  B.role = roleEl.value; B.industry = indEl.value; B.geo = geoEl.value; B.jd = jdEl.value; B.about = aboutEl.value; B.example = false;
   updateJdCount(); saveB();
 }));
+// Enter fills the industry when the typing leaves exactly one suggestion (same contains-match the dropdown uses)
+indEl.addEventListener("keydown", e => {
+  if (e.key !== "Enter" || e.isComposing) return;
+  const typed = indEl.value.trim().toLowerCase();
+  if (!typed) return;
+  const hits = [...$("#industry-list").options].map(o => o.value).filter(v => v.toLowerCase().includes(typed));
+  if (hits.length !== 1) return;
+  e.preventDefault();
+  if (indEl.value !== hits[0]){ indEl.value = hits[0]; indEl.dispatchEvent(new Event("input", { bubbles:true })); }
+  // Close the suggestion dropdown: detach the list, then reattach it on the next keystroke or click
+  indEl.removeAttribute("list"); indEl.blur(); indEl.focus();
+});
+const relistInd = () => { if (!indEl.hasAttribute("list")) indEl.setAttribute("list", "industry-list"); };
+indEl.addEventListener("input", relistInd);
+indEl.addEventListener("pointerdown", relistInd);
 
 $("#b-clear").addEventListener("click", () => {
   B = blankB();
@@ -752,7 +773,7 @@ rulesEl.addEventListener("input", () => store.set("md.rules", rulesEl.value));
 $("#g-rules-reset").addEventListener("click", () => { rulesEl.value = DEFAULT_RULES; store.set("md.rules", DEFAULT_RULES); });
 
 function chatgptPrompt(){
-  const role = roleEl.value.trim(), industry = indEl.value.trim(), geo = geoEl.value.trim(), jd = jdEl.value.trim();
+  const role = roleEl.value.trim(), industry = indEl.value.trim(), geo = geoEl.value.trim(), jd = jdEl.value.trim(), about = aboutEl.value.trim();
   return `${(rulesEl.value.trim() || DEFAULT_RULES)}
 
 RIG
@@ -763,7 +784,12 @@ Geography: ${geo || "(not specified)"}
 JOB DESCRIPTION
 """
 ${jd || "(none, use the RIG only)"}
-"""`;
+"""${about ? `
+
+ABOUT THE COMPANY (from LinkedIn; use it to understand who would fit, e.g. which companies and backgrounds to target)
+"""
+${about.slice(0, 4000)}
+"""` : ""}`;
 }
 function promptReady(){
   if (!roleEl.value.trim() && !jdEl.value.trim()){ toast("Add a Role or a job description first"); roleEl.focus(); return false; }
@@ -1031,10 +1057,10 @@ function renderMgrs(){
     <fieldset class="mgr" data-i="${i}" style="margin:0">
       <div class="mgr-h"><strong>Manager ${i + 1}</strong>${E.managers.length > 1 ? `<button type="button" class="btn ghost" data-rm-mgr="${i}">Remove</button>` : ""}</div>
       <div class="qs">
-        <div class="field"><label for="mg${i}-title">Hiring manager title</label><input type="text" id="mg${i}-title" data-f="title" value="${esc(m.title)}" placeholder="VP of Operations" autocomplete="off"></div>
-        <div class="field"><label for="mg${i}-name">Hiring manager name</label><input type="text" id="mg${i}-name" data-f="name" value="${esc(m.name)}" placeholder="John Doe" autocomplete="off"></div>
-        <div class="field${isEmail(m.email) ? "" : " bad"}"><label for="mg${i}-email">Hiring manager email</label><input type="email" id="mg${i}-email" data-f="email" value="${esc(m.email)}" placeholder="name@company.com" autocomplete="off"><span class="err"${isEmail(m.email) ? " hidden" : ""}>Check this email address.</span></div>
-        <div class="field"><label for="mg${i}-phone">Hiring manager phone</label><input type="tel" id="mg${i}-phone" data-f="phone" value="${esc(m.phone)}" placeholder="(555) 555-5555" autocomplete="off"></div>
+        <div class="field"><label for="mg${i}-title">Hiring manager title</label><input type="text" id="mg${i}-title" data-f="title" value="${esc(m.title)}" autocomplete="off"></div>
+        <div class="field"><label for="mg${i}-name">Hiring manager name</label><input type="text" id="mg${i}-name" data-f="name" value="${esc(m.name)}" autocomplete="off"></div>
+        <div class="field${isEmail(m.email) ? "" : " bad"}"><label for="mg${i}-email">Hiring manager email</label><input type="email" id="mg${i}-email" data-f="email" value="${esc(m.email)}" autocomplete="off"><span class="err"${isEmail(m.email) ? " hidden" : ""}>Check this email address.</span></div>
+        <div class="field"><label for="mg${i}-phone">Hiring manager phone</label><input type="tel" id="mg${i}-phone" data-f="phone" value="${esc(m.phone)}" autocomplete="off"></div>
       </div>
     </fieldset>`).join("");
   $("#m-mgr-count").textContent = `${E.managers.length} ${E.managers.length === 1 ? "manager" : "managers"}`;
@@ -1510,25 +1536,18 @@ function wordCount(s){ return String(s).trim().split(/\s+/).filter(Boolean).leng
 function renderScore(){
   const jd = jdEl.value, resume = M.resume;
   const r = lastResult = scoreMatch(jd, resume);
-  const sub = $("#x-score-sub"), band = $("#x-band"), meter = $("#x-meter");
+  const sub = $("#x-score-sub");
   $("#x-jd-label").textContent = jd.trim() ? (B.role ? `For ${B.role}` : `${wordCount(jd).toLocaleString()} words`) : "Missing";
   $("#x-resume-count").textContent = resume.trim() ? `${wordCount(resume).toLocaleString()} words` : "";
   if (!jd.trim()){
-    $("#x-score").textContent = "\u2013"; band.hidden = true; meter.style.width = "0";
-    sub.textContent = "Add the job description on the RIG Boolean tab (or under Job description here) to score this resume.";
+    sub.textContent = "Add the job description on the RIG Boolean tab (or under Job description here) to match this resume.";
   } else if (!resume.trim()){
-    $("#x-score").textContent = "\u2013"; band.hidden = true; meter.style.width = "0";
-    sub.textContent = `Paste a resume to score it against ${r.terms.length} keywords from the job description.`;
+    sub.textContent = `Paste a resume to match it against ${r.terms.length} keywords from the job description.`;
   } else if (r.score == null){
-    $("#x-score").textContent = "\u2013"; band.hidden = true; meter.style.width = "0";
     sub.textContent = "No recognizable skills or keywords found in the job description.";
   } else {
-    const s = r.score;
-    const [cls, label, color] = s >= 80 ? ["strong","Strong match","var(--good)"] : s >= 65 ? ["good","Good match","var(--accent)"] : s >= 45 ? ["partial","Partial match","var(--warn)"] : ["weak","Weak match","var(--not)"];
-    $("#x-score").textContent = s; band.hidden = false; band.className = "pill " + cls; band.textContent = label;
-    meter.style.width = s + "%"; meter.style.background = color;
     const hits = r.terms.filter(t => t.hit).length;
-    sub.textContent = `${hits} of ${r.terms.length} job description keywords found on the resume. Required skills count most, then preferred. Select \u00D7 on a keyword to leave it out of the score.`;
+    sub.textContent = `${hits} of ${r.terms.length} job description keywords found on the resume. Select \u00D7 on a keyword to leave it out.`;
   }
   const order = ["required","preferred","resp","other"];
   $("#x-tiers").innerHTML = resume.trim() ? order.filter(k => r.tiers[k]).map(k =>
@@ -1613,7 +1632,9 @@ $("#x-redraft").addEventListener("click", () => {
 $("#x-copy-bullets").addEventListener("click", async () => {
   const lines = M.bullets.map(b => b.trim()).filter(Boolean);
   if (!lines.length) return;
-  const ok = await copyText(lines.map(b => "\u2022 " + b).join("\n"));
+  // A real list so email clients indent it; plain-text fallback indents with spaces
+  const html = `<ul style="margin-top:0;margin-bottom:0;padding-left:40px;list-style-type:disc">${lines.map(b => `<li>${esc(b)}</li>`).join("")}</ul>`;
+  const ok = await copyRich(html, lines.map(b => "    \u2022 " + b).join("\n"));
   toast(ok ? "Bullets copied" : "Copy was blocked by this browser.");
 });
 $("#x-clear").addEventListener("click", () => {
@@ -1700,6 +1721,38 @@ $("#x-copy-prompt").addEventListener("click", async () => {
   toast(await copyText(bulletPrompt()) ? "Prompt copied" : "Copy was blocked by this browser.");
 });
 
+// Fit score: the resume and JD go out with an industry-aware scoring ask; the score lives in that tab
+const FIT_RULES = `You are an experienced recruiter in this industry. Score how well this candidate fits this job, from 0 to 100%. Use what you know about the industry and how these roles are really hired, not just exact keyword matches: weigh the must-have requirements most, then the level and years of experience, industry and regulatory background, and transferable skills. Reply with the score as a percentage on the first line, then 3 short reasons it's a fit and up to 3 gaps.`;
+function fitPrompt(){
+  const resume = M.strip !== false ? scrubResume(M.resume, M.name) : M.resume;
+  const ctx = [B.role && `Role: ${B.role.trim()}`, B.industry && `Industry: ${B.industry.trim()}`, B.geo && `Geography: ${B.geo.trim()}`].filter(Boolean).join("\n");
+  const about = (B.about || "").trim();
+  return `${FIT_RULES}
+${ctx ? `\n${ctx}\n` : ""}${about ? `
+ABOUT THE COMPANY
+"""
+${about.slice(0, 4000)}
+"""
+` : ""}
+JOB DESCRIPTION
+"""
+${jdEl.value.trim().slice(0, 14000)}
+"""
+
+RESUME
+"""
+${resume.trim().slice(0, 16000)}
+"""`;
+}
+$("#x-fit-open").addEventListener("click", e => {
+  if (!bulletPromptReady()){ e.preventDefault(); return; }
+  copyText(fitPrompt()).then(ok => toast(ok ? "Prompt copied. Paste it in the new tab." : "Copy was blocked. Use Copy prompt only, then paste."));
+});
+$("#x-fit-copy").addEventListener("click", async () => {
+  if (!bulletPromptReady()) return;
+  toast(await copyText(fitPrompt()) ? "Prompt copied" : "Copy was blocked by this browser.");
+});
+
 function parseBullets(raw){
   return String(raw).replace(/\*\*|__/g, "").split(/\r?\n/).map(l => l.trim())
     .filter(l => l && !/:\s*$/.test(l) && !/^(here|sure|these|below|certainly)\b/i.test(l))
@@ -1766,33 +1819,34 @@ $("#x-pick-list").addEventListener("click", e => {
 const NOTE_PAGES = {
   notes: { key:"md.cnotes", host:"#notes-form", fields:[
     { id:"name", q:"Candidate name", type:"short", wide:true, copy:false },
-    { id:"why", q:"Why looking/ how long?", type:"long" },
-    { id:"active", q:"How active?", type:"select", options:["Passive", "Active"] },
+    { id:"why", q:"Why are they looking, and for how long?", type:"long" },
+    { id:"active", q:"How active are they?", type:"select", options:["Passive", "Active"] },
     { id:"nextRole", q:"What are they looking for in their next role?", type:"long" },
-    { id:"currentRole", q:"What do you do at your current role?", type:"long" },
-    { id:"location", q:"Current location?", type:"short" },
-    { id:"relocateTo", q:"Locations open to relocate?", type:"medium" },
-    { id:"targetTitles", q:"Roles/ titles they are targeting?", type:"medium" },
+    { id:"currentRole", q:"What do they do at their current role?", type:"long" },
+    { id:"location", q:"Current location", type:"short" },
+    { id:"relocateTo", q:"Where are they open to relocating?", type:"medium" },
+    { id:"targetTitles", q:"What roles/ titles are they targeting?", type:"medium" },
     { id:"compNow", q:"Compensation now", type:"parts", parts:["Base", "Bonus", "Other"] },
     { id:"compWant", q:"Expected compensation", type:"parts", parts:["Base", "Bonus", "Other"] },
-    { id:"commute", q:"Current commute?", type:"short" },
-    { id:"commuteWant", q:"Desired commute?", type:"short" },
+    { id:"commute", q:"Current commute", type:"short" },
+    { id:"commuteWant", q:"Desired commute", type:"short" },
     { id:"keyExp", q:"Key experiences", type:"long" },
     { id:"otherInterviews", q:"Other interviews", type:"group", group:{ id:"otherIv", label:"Interview", add:"+ Add another interview", fields:[
-      { id:"where", q:"Where", type:"short" },
-      { id:"stage", q:"Stage", type:"short" },
+      { id:"where", q:"Company", type:"short" },
+      { id:"position", q:"Position applied", type:"short" },
       { id:"via", q:"Applied through", type:"pick", options:["Agency", "Direct"] },
+      { id:"stage", q:"Stage", type:"short" },
       { id:"manager", q:"Manager name", type:"short" },
       { id:"pay", q:"Pay", type:"short" }
     ]}},
-    { id:"sendTo", q:"Companies to consider sending the candidate to?", type:"short" },
-    { id:"workAuth", q:"Work authorization?", type:"select", options:["US Citizen", "Green Card", "VISA"], detail:{ when:"VISA", label:"Visa type" } },
+    { id:"sendTo", q:"Companies to consider sending the candidate to", type:"short" },
+    { id:"workAuth", q:"Work authorization", type:"select", options:["US Citizen", "Green Card", "VISA"], detail:{ when:"VISA", label:"Visa type" } },
     { id:"start", q:"How soon can they start?", type:"short" },
-    { id:"vacations", q:"Any vacations, equity/ bonus payouts to wait for?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"vacations", q:"Do they have any vacations or equity/ bonus payouts to wait for?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
     { id:"notice", q:"How much notice is needed for their current role?", type:"short" },
     { id:"goBack", q:"What companies would they go back to?", type:"short" },
-    { id:"vacancies", q:"Vacancies where they are?", type:"short" },
-    { id:"referrals", q:"Referrals?", type:"medium" },
+    { id:"vacancies", q:"Are there vacancies where they work now?", type:"short" },
+    { id:"referrals", q:"Do they have any referrals?", type:"medium" },
 
     { type:"section", q:"KYC (Know Your Candidate)" },
     { id:"hobbies", q:"Hobbies", type:"short" },
@@ -1816,20 +1870,20 @@ const NOTE_PAGES = {
     { id:"followUp", q:"When is a good day and time to hop on a follow up call for a check in?", type:"short", wide:true },
 
     { type:"section", q:"Medium Priority" },
-    { id:"interviewed", q:"How many candidates have you interviewed?", type:"short" },
-    { id:"agencies", q:"How many agencies do you use at a time?", type:"short" },
+    { id:"interviewed", q:"How many candidates have they interviewed?", type:"short" },
+    { id:"agencies", q:"How many agencies do they use at a time?", type:"short" },
     { id:"bonusSkills", q:"Bonus skills", type:"long" },
     { id:"process", q:"Describe the interview process", type:"long" },
     { id:"cvToOffer", q:"How much time between CV submission to offer?", type:"short" },
-    { id:"canInterview", q:"When can you interview the candidate?", type:"short" },
+    { id:"canInterview", q:"When can they interview the candidate?", type:"short" },
     { id:"missing", q:"What have past candidates been missing?", type:"medium", wide:true },
 
     { type:"section", q:"Low Priority" },
     { id:"reportsTo", q:"Who will the candidate report to?", type:"short" },
-    { id:"sponsor", q:"Do you sponsor?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"sponsor", q:"Do they sponsor?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
     { id:"dayToDay", q:"What does the candidate's day to day look like?", type:"long" },
-    { id:"poach", q:"Any companies you want me to poach from?", type:"medium", wide:true },
-    { id:"companyAbout", q:"How would you best describe the company/ what the company does?", type:"long" },
+    { id:"poach", q:"Are there any companies they want us to poach from?", type:"medium", wide:true },
+    { id:"companyAbout", q:"How would they best describe the company/ what the company does?", type:"long" },
 
     { type:"section", q:"Notes" },
     { id:"notes", q:"Notes", type:"long", bare:true }
@@ -1880,7 +1934,7 @@ function renderNotes(page){
       html += `<div class="iv-list">${list.map((iv, i) => `
         <fieldset class="mgr" style="margin:0">
           <div class="mgr-h"><strong>${esc(g.label)} ${i + 1}</strong>${list.length > 1 ? `<button type="button" class="btn ghost" data-rm-group="${g.id}" data-gi="${i}">Remove</button>` : ""}</div>
-          <div class="qs">${g.fields.map(gf => `<div class="field${gf.type === "checks" ? " full" : ""}">${noteLabel(page, gf, `${g.id}.${i}.${gf.id}`)}${noteControl(page, gf, iv[gf.id], `${g.id}.${i}.${gf.id}`)}</div>`).join("")}</div>
+          <div class="qs">${g.fields.map(gf => `<div class="field${gf.type === "checks" ? " full" : gf.type === "pick" ? " pick-field" : ""}">${noteLabel(page, gf, `${g.id}.${i}.${gf.id}`)}${noteControl(page, gf, iv[gf.id], `${g.id}.${i}.${gf.id}`)}</div>`).join("")}</div>
         </fieldset>`).join("")}</div>
         <div style="margin-top:10px"><button type="button" class="btn" data-add-group="${g.id}">${esc(g.add)}</button></div>`;
     }
