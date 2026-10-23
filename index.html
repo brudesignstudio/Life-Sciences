@@ -183,9 +183,23 @@ a.btn.primary{color:var(--accent-ink)}
 .notes-form textarea{min-height:120px;font-size:14px}
 .notes-form textarea.mid{min-height:64px}
 .notes-sec{grid-column:1/-1;margin-top:10px;padding-top:18px;border-top:1px solid var(--line)}
+.spec-panel{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;margin-top:10px}
+.spec-panel + .spec-panel{margin-top:0}
+.spec-panel.open{border-color:var(--line-strong)}
+.spec-toggle{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;border-radius:10px;padding:14px 16px;cursor:pointer;text-align:left;color:var(--ink)}
+.spec-toggle:hover .spec-name{color:var(--accent-hover)}
+.spec-name{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.spec-count{font-size:13px;color:var(--muted)}
+.spec-chev{margin-left:auto;width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-3px);transition:transform .15s}
+.spec-panel.open .spec-chev{transform:rotate(-135deg) translateY(-3px)}
+.spec-body{padding:2px 16px 18px}
+.spec-body[hidden]{display:none}
+.spec-body > .notes-sec:first-child{margin-top:0;padding-top:0;border-top:0}
+.spec-script{margin:0;font-size:14px;color:var(--muted);border-left:3px solid var(--accent);padding:2px 0 2px 12px}
 .notes-sec h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .parts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:2px}
 .parts .field label{font-weight:500;color:var(--muted)}
+.parts.lettered .field label{font-weight:600;color:var(--ink)}
 @media (max-width:620px){.parts{grid-template-columns:minmax(0,1fr)}}
 .notes-form .detail{margin-top:8px}
 .notes-foot{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
@@ -1857,11 +1871,15 @@ const NOTE_PAGES = {
   ]},
   spec: { key:"md.jspec", host:"#spec-form", fields:[
     { id:"company", q:"Company name", type:"short" },
+    { id:"jobTitle", q:"Job title", type:"short" },
     { id:"manager", q:"Hiring manager name", type:"short" },
     { id:"phone", q:"Hiring manager phone", type:"short", input:"tel", fmt:"phone" },
     { id:"email", q:"Hiring manager email", type:"short", input:"email" },
-    { id:"link", q:"Job description link", type:"short", input:"url", fmt:"url", wide:true },
+    { id:"link", q:"Job description link", type:"short", input:"url", fmt:"url" },
 
+    // Speed Spec and Job Spec Sheet are hideable panels; only one is open at a time,
+    // and Copy notes takes the top fields + the panel in use + Notes
+    { type:"panel", id:"speed", q:"Speed Spec" },
     { type:"section", q:"High Priority" },
     { id:"needWhy", q:"Why do they need someone?", type:"long" },
     { id:"essential", q:"What are the essential skills?", type:"long" },
@@ -1885,6 +1903,51 @@ const NOTE_PAGES = {
     { id:"poach", q:"Are there any companies they want us to poach from?", type:"medium", wide:true },
     { id:"companyAbout", q:"How would they best describe the company/ what the company does?", type:"long" },
 
+    { type:"panel", id:"sheet", q:"Job Spec Sheet" },
+    { id:"vacancyCount", q:"No. of vacancies", type:"short" },
+    { id:"man", q:"Are they the M.A.N.?", type:"select", options:["Yes", "No"], reveal:{ when:"No", parts:["Money", "Authority", "Need"] } },
+
+    { type:"section", q:"Why: The need (S.P.I.N.)" },
+    { id:"reason", q:"What is the reason they are looking for this role?", type:"medium", wide:true },
+    { id:"lookingFor", q:"How long have they been looking?", type:"short" },
+    { id:"startWhen", q:"When do they need someone to start?", type:"short" },
+    { id:"motivators", q:"Motivators", type:"checks", options:["Time", "Cost", "Quality"] },
+    { id:"internal", q:"What internal options do they have?", type:"short" },
+    { id:"visas", q:"Able to sponsor visas for this role?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+
+    { type:"section", q:"What: Essential skills / experience" },
+    { id:"skills", q:"Essential skills / experience", type:"long" },
+    { id:"responsibilities", q:"Day to day responsibilities?", type:"long" },
+    { id:"resumeCos", q:"What company names do they like seeing on resumes?", type:"medium", wide:true },
+
+    { type:"section", q:"Bonus skills / experience" },
+    { id:"bonusExp", q:"Bonus skills / experience", type:"long", bare:true },
+
+    { type:"section", q:"Key details" },
+    { id:"comp", q:"Compensation", type:"parts", parts:["Base", "Bonus", "Equity/stock"] },
+    { id:"benefits", q:"Benefits", type:"checks", options:["Health", "Dental", "Vision", "401K"] },
+    { id:"bonusPaid", q:"Bonus paid", type:"pick", options:["Quarterly", "Yearly", "Other"], detail:{ when:"Other", label:"Details" } },
+    { id:"flex", q:"Flex", type:"pick", options:["Remote", "Hybrid", "On-site"] },
+    { id:"relo", q:"Relocation package?", type:"select", options:["Yes", "No"], detail:{ when:"Yes", label:"Details" } },
+    { id:"teamSize", q:"Team size", type:"short" },
+
+    { type:"section", q:"Interview process" },
+    { id:"ivWho", q:"Who", type:"short" },
+    { id:"ivWhen", q:"When", type:"short" },
+    { id:"ivStages", q:"Stages", type:"medium" },
+    { id:"ivAssess", q:"What will be assessed at each stage?", type:"medium" },
+
+    { type:"section", q:"How: Next steps agreed" },
+    { id:"cbFeedback", q:"Call back for resume feedback", type:"short" },
+    { id:"ivSlots", q:"Interview slots", type:"short" },
+    { id:"ivFeedback", q:"Interview feedback", type:"short" },
+    { id:"otherMgrs", q:"Other manager names", type:"short" },
+    { id:"nextCall", q:"Next call (put the agreed time into their calendar)", type:"short", wide:true },
+
+    { type:"section", q:"Terms" },
+    { type:"script", q:"Terms", text:"I'll send over a few candidates I think would be a great fit for the role and will attach our terms of business for your team to review as well. Once that's sorted, we can schedule interviews with any candidates you'd like to move forward with." },
+    { type:"endpanel" },
+
     { type:"section", q:"Notes" },
     { id:"notes", q:"Notes", type:"long", bare:true }
   ]}
@@ -1893,11 +1956,11 @@ const NOTES = {};
 for (const k in NOTE_PAGES) NOTES[k] = store.get(NOTE_PAGES[k].key, {});
 const saveNotes = k => store.set(NOTE_PAGES[k].key, NOTES[k]);
 const blankRow = g => Object.fromEntries(g.fields.map(gf => [gf.id, gf.type === "checks" ? [] : ""]));
-const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group" || f.type === "parts" || f.type === "section";
+const isWide = f => f.wide || f.type === "long" || f.type === "yesno" || f.type === "group" || f.type === "parts" || f.type === "section" || f.type === "script";
 const partKey = (f, p) => `${f.id}_${p.toLowerCase()}`;
 
 function noteControl(page, f, val, path){
-  if (f.type === "group" || f.type === "section") return "";
+  if (f.type === "group" || f.type === "section" || f.type === "script") return "";
   const id = `${page}-${path}`;
   const data = `data-path="${esc(path)}"`;
   if (f.type === "long") return `<textarea id="${id}" ${data}>${esc(val || "")}</textarea>`;
@@ -1920,8 +1983,20 @@ function noteLabel(page, f, path){
 function renderNotes(page){
   const P = NOTE_PAGES[page], N = NOTES[page], host = $(P.host);
   if (!P.fields.length){ host.innerHTML = `<div class="notes-empty">No questions here yet. They'll be added soon.</div>`; return; }
+  let inPanel = false;
   host.innerHTML = P.fields.map(f => {
+    // A panel wraps every field up to the next panel or endpanel
+    if (f.type === "panel" || f.type === "endpanel"){
+      const close = inPanel ? `</div></div>` : "";
+      inPanel = f.type === "panel";
+      if (!inPanel) return close;
+      const open = N._open === f.id, n = panelAnswered(page, f.id);
+      return close + `<div class="spec-panel${open ? " open" : ""}"><button type="button" class="spec-toggle" data-panel="${f.id}" aria-expanded="${open}" aria-controls="${page}-panel-${f.id}">
+        <span class="spec-name">${esc(f.q)}</span>${n ? `<span class="spec-count">${n} answered</span>` : ""}<span class="spec-chev" aria-hidden="true"></span></button>
+        <div class="notes-form spec-body" id="${page}-panel-${f.id}"${open ? "" : " hidden"}>`;
+    }
     if (f.type === "section") return `<div class="notes-sec"><h2>${esc(f.q)}</h2></div>`;
+    if (f.type === "script") return `<div class="field full"><p class="spec-script">${esc(f.text)}</p></div>`;
     // bare: the section heading is the label, so the box shows none and copies as the answer alone
     let html = `<div class="field${isWide(f) ? " full" : ""}">${f.bare ? `<label class="sr" for="${page}-${f.id}">${esc(f.q)}</label>` : noteLabel(page, f, f.id)}${noteControl(page, f, N[f.id], f.id)}`;
     if (f.detail && N[f.id] === f.detail.when){
@@ -1938,8 +2013,34 @@ function renderNotes(page){
         </fieldset>`).join("")}</div>
         <div style="margin-top:10px"><button type="button" class="btn" data-add-group="${g.id}">${esc(g.add)}</button></div>`;
     }
-    return html + `</div>`;
-  }).join("");
+    html += `</div>`;
+    // reveal: a dropdown answer that opens a row of boxes (M.A.N. No -> Money / Authority / Need)
+    if (f.reveal && N[f.id] === f.reveal.when){
+      html += `<div class="field full"><span class="sr" id="${page}-${f.id}-r">${esc(f.q)} ${esc(f.reveal.when)}</span><div class="parts lettered" role="group" aria-labelledby="${page}-${f.id}-r">${f.reveal.parts.map(p => {
+        const k = partKey(f, p);
+        return `<div class="field"><label for="${page}-${k}"><span class="rig-letter">${esc(p[0])}</span>${esc(p.slice(1))}</label><input type="text" id="${page}-${k}" data-path="${k}" value="${esc(N[k] || "")}" autocomplete="off"></div>`;
+      }).join("")}</div></div>`;
+    }
+    return html;
+  }).join("") + (inPanel ? `</div></div>` : "");
+}
+// The panel each field sits in (undefined outside panels)
+function panelOf(page){
+  const map = {}; let cur;
+  for (const f of NOTE_PAGES[page].fields){
+    if (f.type === "panel"){ cur = f.id; continue; }
+    if (f.type === "endpanel"){ cur = undefined; continue; }
+    if (f.id) map[f.id] = cur;
+  }
+  return map;
+}
+function panelAnswered(page, panel){
+  const N = NOTES[page], map = panelOf(page);
+  return NOTE_PAGES[page].fields.filter(f => f.id && map[f.id] === panel).filter(f => {
+    if (f.type === "parts") return f.parts.some(p => noteValue(null, N[partKey(f, p)]));
+    if (f.reveal && N[f.id] === f.reveal.when) return true;
+    return noteValue(f, N[f.id]);
+  }).length;
 }
 function setNote(page, path, v){
   const N = NOTES[page], parts = path.split(".");
@@ -1987,7 +2088,16 @@ Object.keys(NOTE_PAGES).forEach(page => {
   });
   host.addEventListener("click", e => {
     const add = e.target.closest("[data-add-group]"), rm = e.target.closest("[data-rm-group]");
-    const N = NOTES[page];
+    const N = NOTES[page], tog = e.target.closest("[data-panel]");
+    if (tog){
+      // Opening one panel closes the other; the last one opened is the one Copy notes uses
+      const id = tog.dataset.panel;
+      N._open = N._open === id ? "" : id;
+      if (N._open) N._use = id;
+      saveNotes(page); renderNotes(page);
+      host.querySelector(`[data-panel="${id}"]`)?.focus();
+      return;
+    }
     if (add){
       const g = NOTE_PAGES[page].fields.find(f => f.group?.id === add.dataset.addGroup).group;
       N[g.id].push(blankRow(g)); saveNotes(page); renderNotes(page);
@@ -2006,11 +2116,16 @@ function notesBlocks(page){
     const lines = g.fields.map(gf => ({ q:gf.q, v:noteValue(gf, row[gf.id]) })).filter(l => l.v);
     return lines.length ? [{ h:`${g.label} ${i + 1}` }, ...lines] : null;
   }).filter(Boolean);
-  let section = null;
+  let section = null, panel;
+  // Only the panel in use is copied: the open one, else the last one opened, else any with answers
+  const use = N._open || N._use;
   const push = block => { if (section){ out.push([{ h:section, sec:true }]); section = null; } out.push(block); };
   for (const f of P.fields){
+    if (f.type === "panel"){ panel = f.id; section = null; continue; }
+    if (f.type === "endpanel"){ panel = undefined; section = null; continue; }
+    if (panel && use && panel !== use) continue;
     if (f.type === "section"){ section = f.q; continue; }
-    if (f.copy === false) continue;
+    if (f.copy === false || f.type === "script") continue;
     if (f.type === "group"){
       const rows = groupBlocks(f.group, N[f.group.id]);
       if (rows.length){ push([{ h:f.q }]); rows.forEach(r => out.push(r)); }
@@ -2024,6 +2139,10 @@ function notesBlocks(page){
     let v = noteValue(f, N[f.id]);
     if (!v) continue;
     if (f.detail && v === f.detail.when){ const d = noteValue(null, N[f.id + "Detail"]); if (d) v = `${v}, ${d}`; }
+    if (f.reveal && v === f.reveal.when){
+      push([{ q:f.q, v }, ...f.reveal.parts.map(p => ({ q:p, v:noteValue(null, N[partKey(f, p)]) })).filter(l => l.v)]);
+      continue;
+    }
     push([f.bare ? { a:v } : { q:f.q, v }]);
     if (f.group && v === "Yes") groupBlocks(f.group, N[f.group.id]).forEach(r => out.push(r));
   }
