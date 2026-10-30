@@ -43,6 +43,7 @@ button,input,textarea,select{font:inherit;color:inherit}
 .tab .n{font-family:var(--f-mono);font-size:11px;border:1px solid currentColor;border-radius:999px;width:20px;height:20px;display:inline-grid;place-items:center}
 .tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .tabs{max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tab{white-space:nowrap;flex:none}
 .tabs::-webkit-scrollbar{display:none}
 @media (max-width:520px){.tab{padding:7px 11px;font-size:13px}.brand span{display:none}}
 
@@ -75,12 +76,14 @@ button,input,textarea,select{font:inherit;color:inherit}
 .field .opt{font-weight:500}
 .field label .q{font-family:var(--f-mono);color:var(--muted);font-weight:500;margin-right:4px}
 .field .hint{font-size:12px;color:var(--muted)}
-input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],textarea{
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],input[type=date],textarea{
   width:100%;background:var(--field);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;min-width:0}
 input:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
 textarea{resize:vertical;min-height:200px;line-height:1.45;font-size:14px}
 textarea.short{min-height:96px;font-family:var(--f-mono);font-size:13px}
 #g-rules{min-height:150px;font-size:13px}
+#s-prompt{min-height:260px;font-size:13px}
+input[type=date]{color-scheme:dark}
 .lede{margin:0;font-size:13.5px;color:var(--muted);max-width:62ch}
 a.btn{text-decoration:none;color:inherit}
 a.btn.primary{color:var(--accent-ink)}
@@ -296,6 +299,7 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
       <button class="tab" role="tab" id="tab-match" aria-controls="view-match" aria-selected="false" data-view="match">Candidate Match</button>
       <button class="tab" role="tab" id="tab-notes" aria-controls="view-notes" aria-selected="false" data-view="notes">Candidate Notes</button>
       <button class="tab" role="tab" id="tab-spec" aria-controls="view-spec" aria-selected="false" data-view="spec">Job Spec</button>
+      <button class="tab" role="tab" id="tab-stalk" aria-controls="view-stalk" aria-selected="false" data-view="stalk">Ad Stalk</button>
     </nav>
   </div>
 </header>
@@ -604,6 +608,79 @@ table.sheet td.ph{color:var(--sheet-head-ink);font-style:italic}
       </div>
     </div>
   </section>
+
+  <!-- ============ AD STALK ============ -->
+  <section id="view-stalk" role="tabpanel" aria-labelledby="tab-stalk" hidden>
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <h1>Ad Stalk</h1>
+          <p>Paste a job ad from a recruitment agency and work out who the real client is. Put the company and position you find into the Middleton Method.</p>
+        </div>
+      </div>
+      <div class="bench single">
+        <div class="panel">
+          <div class="step">
+            <div class="step-h"><h2>Fill in the prompt</h2></div>
+            <div class="qs">
+              <div class="field">
+                <label for="s-agency">Recruitment agency</label>
+                <input type="text" id="s-agency" placeholder="Agency name" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="s-date">Today's date</label>
+                <input type="date" id="s-date">
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><h2>Paste the job description</h2><small id="s-jd-count"></small></div>
+            <div class="field">
+              <label class="sr" for="s-jd">Job description</label>
+              <textarea id="s-jd" style="min-height:300px" placeholder="Paste the agency's job ad here…"></textarea>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><h2>Find the end client</h2></div>
+            <p class="lede">Copies the research prompt with the agency, today's date and the job description, and opens a new tab. Paste it there with ⌘V / Ctrl+V and send.</p>
+            <div class="row">
+              <a class="btn primary big" id="s-open" href="https://chatgpt.com/" target="_blank" rel="noopener">Copy prompt &amp; open ChatGPT ↗</a>
+              <button type="button" class="btn ghost" id="s-copy">Copy prompt only</button>
+            </div>
+            <details class="rules">
+              <summary>The research prompt</summary>
+              <div class="field">
+                <label class="sr" for="s-prompt">Research prompt</label>
+                <textarea id="s-prompt"></textarea>
+                <div class="row"><span class="hint grow">[RECRUITMENT AGENCY] and [TODAY'S DATE] are filled in from the boxes above. Edits here are remembered in this browser.</span><button type="button" class="btn ghost" id="s-prompt-reset">Reset to default</button></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="step">
+            <div class="step-h"><h2>What you found</h2></div>
+            <div class="qs">
+              <div class="field">
+                <label for="s-company">Company name</label>
+                <input type="text" id="s-company" autocomplete="off">
+              </div>
+              <div class="field">
+                <label for="s-position">Position</label>
+                <input type="text" id="s-position" autocomplete="off">
+              </div>
+            </div>
+            <div class="row">
+              <button type="button" class="btn primary" id="s-to-middleton">Add to Middleton Method</button>
+              <span class="grow"></span>
+              <button type="button" class="btn ghost" id="s-clear">Clear everything</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <dialog class="pick" id="x-pick" aria-labelledby="x-pick-h">
@@ -635,11 +712,13 @@ function toast(msg){
 /* ---------------- Tabs ---------------- */
 function showView(name){
   document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
+  document.querySelector(`.tab[data-view="${name}"]`)?.scrollIntoView({ block:"nearest", inline:"nearest" });
   $("#view-boolean").hidden = name !== "boolean";
   $("#view-match").hidden = name !== "match";
   $("#view-middleton").hidden = name !== "middleton";
   $("#view-notes").hidden = name !== "notes";
   $("#view-spec").hidden = name !== "spec";
+  $("#view-stalk").hidden = name !== "stalk";
   if (name === "match") syncMatchJd();
   store.set("md.view", name);
   if (name === "middleton") prefillPositionFromRig();
@@ -2144,6 +2223,175 @@ document.querySelectorAll("[data-clear-notes]").forEach(b => b.addEventListener(
   const page = b.dataset.clearNotes; NOTES[page] = {}; saveNotes(page); renderNotes(page); toast("Notes cleared");
 }));
 
+/* =========================================================
+   AD STALK
+   Fills the end-client research prompt with the agency, today's date
+   and the pasted job ad; the company and position found go to the Middleton Method.
+   ========================================================= */
+const DEFAULT_STALK_PROMPT = `Recruitment Agency End-Client Intelligence Research
+
+Configuration
+Recruitment Agency: [RECRUITMENT AGENCY]
+
+Objective
+Identify the likely end clients behind job postings published or advertised by [RECRUITMENT AGENCY] within the past 30 days. Use web research, job descriptions, industry knowledge, geographic clues, and cross-referencing to determine which company is actually hiring for each position.
+
+The goal is to uncover the underlying employer or client represented by the recruitment agency, not simply repeat the agency's name or the company hosting the job advertisement.
+
+Prioritize high-confidence identifications over finding the maximum number of jobs. Do not force a match when the evidence is weak.
+
+Research Instructions
+
+1. Find recent job postings
+Search LinkedIn, the agency's website, job boards, search engine results, and other publicly accessible sources for job postings associated with the specified agency.
+- Limit results to postings published within the last 30 days, measured from today's date. Today's date is [TODAY'S DATE].
+- Record the original posting date where available.
+- Include only roles for which the agency appears to be recruiting or advertising on behalf of a client.
+- Exclude duplicate listings, expired posts outside the date window, and jobs where the agency is merely mentioned but is not recruiting.
+- Capture the job title, location, posting date, and original job URL.
+- If a posting date cannot be verified, flag it rather than assuming it qualifies.
+
+2. Investigate the likely end client
+For each qualifying job, investigate the identity of the underlying employer using the following clues:
+- Job description: Unique technical requirements, products, technologies, projects, responsibilities, and industry terminology.
+- Geography: Office locations, manufacturing sites, headquarters, engineering hubs, unusual hiring locations, and regional industry clusters.
+- Company activity: Recent funding, product launches, facility openings, new contracts, expansion plans, and hiring announcements.
+- Matching vacancies: Similar roles advertised directly by potential employers or by other recruitment agencies.
+- Recruiter and agency evidence: Recruiter profiles, agency specialisms, archived or indexed job descriptions, and other publicly available references.
+- Organizational clues: Team structure, reporting lines, company size, required experience, and references to products or business units.
+- Unique combinations of clues: Look for a combination of niche technology, role requirements, and location that points to a particular company.
+
+Use targeted searches to investigate distinctive phrases and clues. For example, a senior mechanical engineering role focused on thermal structures in a Chicago-area microreactor business could point toward a company developing advanced nuclear technology in that region.
+
+Treat this type of inference as a hypothesis until corroborated. Do not identify a client based solely on a vague industry match or geographic coincidence.
+
+3. Verify and score each hypothesis
+Generate candidate end clients for each job and evaluate them against the available evidence.
+
+Use this confidence scale:
+- HIGH (85\u2013100%): Multiple independent clues strongly support the match, ideally including a direct or near-direct corroborating source.
+- MEDIUM (65\u201384%): Several specific clues align, but meaningful uncertainty remains.
+- LOW (below 65%): The match relies mainly on circumstantial evidence, generic job requirements, or an unverified assumption.
+
+These percentages are reasoned estimates, not statistically calibrated probabilities.
+
+Only include HIGH-confidence matches in the primary results. Put medium-confidence matches in a separate section only when the evidence is sufficiently specific to be worth investigating. Omit low-confidence matches from the results.
+
+Where possible, distinguish independent corroborating evidence from multiple websites that merely repeat the same original listing.
+
+4. Cite the evidence
+For each proposed match, provide one or two short, specific reasons why the client is a plausible identification.
+
+Include links to the strongest publicly available supporting sources, such as:
+- The original recruitment listing.
+- A matching vacancy on the end client's website.
+- An official company announcement or product page.
+- A credible source confirming a relevant facility, project, technology, or location.
+
+Clearly distinguish verified facts from inferences. Never invent sources, quotations, posting dates, or evidence.
+
+If no sufficiently strong match can be established, label the client Unidentified rather than guessing.
+
+Output Format
+
+Start with a short summary:
+Agency: [Agency Name]
+Research period: [Start Date] \u2013 [End Date]
+Jobs reviewed: [Number]
+High-confidence client matches: [Number]
+
+Then provide a compact table containing only high-confidence matches:
+| Job Title | Likely End Client | Confidence | Key Evidence | Job Link |
+| Exact advertised title | Company name | 92% \u2014 High | Specific technical and geographic clues align with the company's documented activities | [Original listing] |
+
+Keep the evidence column to one or two concise sentences. Link the company name to an official website or corroborating source when available and link the job title to the original listing.
+
+Below the table, include a separate Worth Investigating section for any credible medium confidence leads. Include the job title, candidate client, estimated confidence, and the main unresolved question. Omit this section if there are no worthwhile leads.
+
+Finish with a short Research Limitations note if relevant, covering inaccessible listings, uncertain dates, or insufficient evidence.
+
+Important Rules
+- Research actual, current web sources; do not answer from memory alone.
+- Search broadly enough to find relevant postings but prioritize evidence quality over volume.
+- Do not assume that the company named in the job title, URL, LinkedIn page, or recruitment agency profile is the end client.
+- Do not confuse the recruitment agency, its own corporate employer, a staffing subcontractor, and the ultimate hiring company.
+- Do not treat a similar job title as proof of a client relationship.
+- Do not claim that a company is confirmed as the end client unless the sources establish that relationship.
+- Do not fabricate missing details.
+- Avoid lengthy explanations, speculative company lists, and generic job-market commentary.
+- If a job cannot be confidently attributed to a client, leave it out of the primary results.
+
+Final goal: Deliver a concise, evidence-backed shortlist of the most likely end clients behind this agency's job postings from the past 30 days, suitable for quick review and business development research.`;
+
+const S = Object.assign({ agency:"", jd:"", company:"", position:"" }, store.get("md.stalk", {}));
+function saveS(){ store.set("md.stalk", S); }
+const sPrompt = $("#s-prompt"), sDate = $("#s-date"), sJd = $("#s-jd");
+const isoToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+function longDate(iso){
+  const [y, m, d] = String(iso || "").split("-").map(Number);
+  if (!y || !m || !d) return "";
+  return new Date(y, m - 1, d).toLocaleDateString("en-US", { month:"long", day:"numeric", year:"numeric" });
+}
+function updateStalkCount(){ const n = wordCount(sJd.value); $("#s-jd-count").textContent = n ? `${n} words` : ""; }
+function renderStalk(){
+  ["agency","jd","company","position"].forEach(k => { $("#s-" + k).value = S[k]; });
+  sDate.value = isoToday();   // always starts on today; change it for this visit only
+  sPrompt.value = store.get("md.stalk.prompt", DEFAULT_STALK_PROMPT);
+  updateStalkCount();
+}
+["agency","jd","company","position"].forEach(k => {
+  const el = $("#s-" + k);
+  el.addEventListener("input", () => { S[k] = el.value; saveS(); if (k === "jd") updateStalkCount(); });
+});
+sPrompt.addEventListener("input", () => store.set("md.stalk.prompt", sPrompt.value));
+$("#s-prompt-reset").addEventListener("click", () => { sPrompt.value = DEFAULT_STALK_PROMPT; store.set("md.stalk.prompt", DEFAULT_STALK_PROMPT); });
+
+function stalkPrompt(){
+  const agency = S.agency.trim(), today = longDate(sDate.value) || longDate(isoToday()), jd = S.jd.trim();
+  const body = (sPrompt.value.trim() || DEFAULT_STALK_PROMPT)
+    .replace(/\[RECRUITMENT AGENCY\]/g, agency).replace(/\[TODAY'S DATE\]/g, today);
+  return jd ? `${body}
+
+JOB DESCRIPTION
+One of ${agency}'s job ads, to start from:
+"""
+${jd}
+"""` : body;
+}
+function stalkReady(){
+  if (!S.agency.trim()){ toast("Add the recruitment agency first"); $("#s-agency").focus(); return false; }
+  return true;
+}
+$("#s-open").addEventListener("click", e => {
+  if (!stalkReady()){ e.preventDefault(); return; }
+  copyText(stalkPrompt()).then(ok => toast(ok ? "Prompt copied. Paste it in the new tab." : "Copy was blocked. Use Copy prompt only, then paste."));
+  setTimeout(() => $("#s-company").focus({ preventScroll:true }), 300);
+});
+$("#s-copy").addEventListener("click", async () => {
+  if (!stalkReady()) return;
+  const ok = await copyText(stalkPrompt());
+  toast(ok ? "Prompt copied" : "Copy was blocked by this browser.");
+});
+
+// Starts the Middleton entry with the company and position; the rest is filled in there
+$("#s-to-middleton").addEventListener("click", () => {
+  const company = S.company.trim(), position = S.position.trim();
+  if (!company && !position){ toast("Add the company or position first"); $("#s-company").focus(); return; }
+  const inProgress = !E.example && (E.company.trim() || E.link.trim() || E.managers.some(m => Object.values(m).some(v => String(v).trim())));
+  if (inProgress && !confirm("The Middleton Method form already has an entry in progress. Replace it with this company and position?")) return;
+  if (E.example || inProgress) newEntry(true);
+  if (!String(E.num).trim()) E.num = nextNum();
+  E.company = company; E.position = position;
+  saveE(); renderEntryForm();
+  showView("middleton");
+  toast("Added. Fill in the rest and save.");
+  $("#m-link").focus({ preventScroll:true });
+});
+$("#s-clear").addEventListener("click", () => {
+  Object.assign(S, { agency:"", jd:"", company:"", position:"" }); saveS(); renderStalk();
+  toast("Cleared"); $("#s-agency").focus();
+});
+
 /* ---------- Clipboard helpers ---------- */
 function selectNode(node){
   const r = document.createRange(); r.selectNodeContents(node);
@@ -2183,7 +2431,8 @@ if (E.num == null) E.num = nextNum();
 renderEntryForm(); renderLog();
 renderMatch();
 renderNotes("notes"); renderNotes("spec");
-const hashView = { "#boolean":"boolean", "#match":"match", "#middleton":"middleton", "#notes":"notes", "#spec":"spec" }[location.hash];
+renderStalk();
+const hashView = { "#boolean":"boolean", "#match":"match", "#middleton":"middleton", "#notes":"notes", "#spec":"spec", "#stalk":"stalk" }[location.hash];
 const startView = hashView || store.get("md.view", "middleton");
 showView(startView);
 
